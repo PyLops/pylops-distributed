@@ -1,4 +1,4 @@
-[PyLops-distributed](https://github.com/equinor/pylops-distributed/blob/master/docs/source/_static/d-pylops_b.png)
+![PyLops-distributed](https://github.com/equinor/pylops-distributed/blob/master/docs/source/_static/d-pylops_b.png)
 
 :vertical_traffic_light: :vertical_traffic_light: This library is under early development.
 Expect things to constantly change until version v1.0.0. :vertical_traffic_light: :vertical_traffic_light:
