@@ -37,6 +37,7 @@ intersphinx_mapping = {
     "pyfftw": ("https://pyfftw.readthedocs.io/en/latest/", None),
     "spgl1": ("https://spgl1.readthedocs.io/en/latest/", None),
     "dask": ("https://docs.dask.org/en/latest/", None),
+    "pylops": ("https://pylops.readthedocs.io/en/latest/", None),
 }
 
 ## Generate autodoc stubs with summaries from code

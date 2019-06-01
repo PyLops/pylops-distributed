@@ -1,4 +1,7 @@
+from .LinearOperator import LinearOperator
+
 from .basicoperators import Spread
+from .basicoperators import Diagonal
 
 from .utils.backend import dask
 

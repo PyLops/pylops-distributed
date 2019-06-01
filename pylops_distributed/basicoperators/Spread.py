@@ -4,8 +4,8 @@ from pylops import LinearOperator
 
 try:
     from numba import jit
-    from ._Spread_numba import _matvec_numba_table, _rmatvec_numba_table, \
-        _matvec_numba_onthefly, _rmatvec_numba_onthefly
+    from pylops.basicoperators._Spread_numba import _matvec_numba_table, \
+        _rmatvec_numba_table, _matvec_numba_onthefly, _rmatvec_numba_onthefly
 except ModuleNotFoundError:
     jit = None
 
@@ -56,8 +56,8 @@ class Spread(LinearOperator):
         used only if ``engine='numba'``, inferred directly from the number of
         outputs of ``fh`` for ``engine='numpy'``
     compute : :obj:`tuple`, optional
-        Compute the outcome of forward and adjoint when using ``engine='dask'``
-        or simply define the graph and return a distributed :obj:`dask.array`
+        Compute the outcome of forward and adjoint or simply define the graph
+        and return a :obj:`dask.array`
     dtype : :obj:`str`, optional
         Type of elements in input array.
 
