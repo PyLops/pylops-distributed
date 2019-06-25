@@ -5,19 +5,20 @@ class LinearOperator(pLinearOperator):
 
     This class is an overload of the
     :py:class:`pylops.LinearOperator` class. It adds
-    functionalities to choose whether to compute forward and adjoint or simply
-    define their graph.
+    functionalities for distributed operators; specifically, it allows users
+    choosing whether to compute forward and adjoint or simply define their
+    graphs.
 
     In order to avoid the input vectors to be converted to ``numpy`` array
-    by the original ``matvec`` and ``rmatvec``, those methods are overwritten
-    here to simply call their private methods ``_matvec`` and ``_rmatvec``
-    without any prior check on the input vectors.
+    by ``matvec`` and ``rmatvec`` of the parent class, those methods are
+    overwritten here to simply call their private methods
+    ``_matvec`` and ``_rmatvec`` without any prior check on the input vectors.
 
     .. note:: End users of PyLops should not use this class directly but simply
       use operators that are already implemented. This class is meant for
       developers and it has to be used as the parent class of any new operator
-      developed within PyLops-distibuted. Find more details regarding implementation of
-      new operators at :ref:`addingoperator`.
+      developed within PyLops-distibuted. Find more details regarding
+      implementation of new operators at :ref:`addingoperator`.
 
     Parameters
     ----------

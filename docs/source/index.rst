@@ -49,7 +49,7 @@ and similarly using PyLops-distributed:
 
    import numpy as np
    import pylops_distributed
-   from pylops import Diagonal
+   from pylops_distributed import Diagonal
 
    # set-up client
    client = pylops_distributed.utils.backend.dask()
@@ -68,7 +68,7 @@ and similarly using PyLops-distributed:
    # xinv = D^-1 y
    xinv = Dop / y
 
-It worth noticing two things at this point. First in this specific case we did not even need to reimplement the ``Derivative`` operator.
+It is worth noticing two things at this point. First in this specific case we did not even need to reimplement the ``Diagonal`` operator.
 Calling numpy operations as methods (e.g., ``x.sum()``) instead of functions (e.g., ``np.sum(x)``) makes it automatic for our operator to act as
 a distributed operator when a dask array is provided instead. Unfortunately not all numpy functions are also implemented as methods: in those cases we
 reimplement the operator directly within PyLops-distributed. Second, using ``*`` and ``.H*`` is still possible also within PyLops-distributed,

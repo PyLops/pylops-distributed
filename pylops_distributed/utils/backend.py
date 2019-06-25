@@ -1,10 +1,8 @@
-try:
-    from dask.distributed import Client, LocalCluster
-except ModuleNotFoundError:
-    Client = None
+from dask.distributed import Client, LocalCluster
 
 
-def dask(hardware='single', processes=True, threads_per_worker=None):
+def dask(hardware='single', processes=True, n_workers=None,
+         threads_per_worker=None):
     r"""Dask backend initialization.
 
     Create connection to drive computations using Dask distributed.
@@ -16,6 +14,8 @@ def dask(hardware='single', processes=True, threads_per_worker=None):
         are ``single`` for single-machine distribution.
     processes : :obj:`str`, optional
         Whether to use processes (``True``) or threads (``False``).
+    n_workers : :obj:`int`, optional
+        Number of workers
     threads_per_worker : :obj:`int`, optional
         Number of threads per each worker
 
@@ -30,7 +30,7 @@ def dask(hardware='single', processes=True, threads_per_worker=None):
 
     """
     if hardware == 'single':
-        cluster = LocalCluster(processes=processes,
-                            threads_per_worker=threads_per_worker)
+        cluster = LocalCluster(processes=processes, n_workers=n_workers,
+                               threads_per_worker=threads_per_worker)
         client = Client(cluster)
     return client
