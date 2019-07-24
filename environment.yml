@@ -9,5 +9,5 @@ dependencies:
   - scipy
   - numba
   - icc_rt
-  - dask
+  - dask>=2.0.0
   - pylops

@@ -34,7 +34,7 @@ def test_Diagonal_1dsignal(par):
         assert_array_almost_equal(dy, y, decimal=5)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par2)]) #[(par1), (par2)])
 def test_Diagonal_2dsignal(par):
     """Dot-test and inversion for Diagonal operator for 2d signal
     """
@@ -58,7 +58,7 @@ def test_Diagonal_2dsignal(par):
         assert_array_almost_equal(dy, y, decimal=5)
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par2)]) #[(par1), (par2)])
 def test_Diagonal_3dsignal(par):
     """Dot-test and inversion for Diagonal operator for 3d signal
     """
