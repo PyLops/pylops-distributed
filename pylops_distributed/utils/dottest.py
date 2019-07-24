@@ -68,12 +68,13 @@ def dottest(Op, nr, nc, chunks, tol=1e-6, complexflag=0,
     if not Op.compute[1]:
         x.compute()
 
+    print(u.compute().shape, x.shape)
     if complexflag == 0:
-        yy = np.dot(y, v) # (Op  * u)' * v
-        xx = np.dot(u, x) # u' * (Op' * v)
+        yy = np.dot(y, v.compute()) # (Op  * u)' * v
+        xx = np.dot(u.compute(), x) # u' * (Op' * v)
     else:
-        yy = np.vdot(y, v) # (Op  * u)' * v
-        xx = np.vdot(u, x) # u' * (Op' * v)
+        yy = np.vdot(y, v.compute()) # (Op  * u)' * v
+        xx = np.vdot(u.compute(), x) # u' * (Op' * v)
 
     if complexflag == 0:
         if np.abs((yy-xx)/((yy+xx+1e-15)/2)) < tol:

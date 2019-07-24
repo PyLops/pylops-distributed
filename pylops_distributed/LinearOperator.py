@@ -38,7 +38,7 @@ class LinearOperator(pLinearOperator):
 
     """
     def __init__(self, shape, dtype, Op=None, explicit=False,
-                 compute=(False, False)):
+                 compute=(False, False), chunks=None):
         super().__init__(Op=Op, explicit=explicit)
         self.shape = shape
         self.dtype = dtype
@@ -51,6 +51,7 @@ class LinearOperator(pLinearOperator):
             y = self._matvec(x)
         else:
             y = self.Op._matvec(x)
+        y = y.reshape(self.shape[0])
         if self.compute[0]:
             y = y.compute()
         return y
@@ -60,6 +61,7 @@ class LinearOperator(pLinearOperator):
             y = self._rmatvec(x)
         else:
             y = self.Op._rmatvec(x)
+        y = y.reshape(self.shape[1])
         if self.compute[1]:
             y = y.compute()
         return y

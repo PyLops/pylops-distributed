@@ -29,13 +29,9 @@ class Fredholm1(LinearOperator):
         Save ``G`` and ``G^H`` to speed up the computation of adjoint
         (``True``) or create ``G^H`` on-the-fly (``False``)
         Note that ``saveGt=True`` will double the amount of required memory
-    usematmul : :obj:`bool`, optional
-        Use :func:`numpy.matmul` (``True``) or for-loop with :func:`numpy.dot`
-        (``False``). As it is not possible to define which approach is more
-        performant (this is highly dependent on the size of ``G`` and input
-        arrays as well as the hardware used in the compution), we advise users
-        to time both methods for their specific problem prior to making a
-        choice.
+    compute : :obj:`tuple`, optional
+        Compute the outcome of forward and adjoint or simply define the graph
+        and return a :obj:`dask.array`
     dtype : :obj:`str`, optional
         Type of elements in input array.
 
@@ -81,11 +77,33 @@ class Fredholm1(LinearOperator):
         \end{bmatrix}
 
     """
-    def __init__(self, G, nz=1, saveGt=True, usematmul=True, dtype='float64'):
-        pass
+    def __init__(self, G, nz=1, saveGt=True, compute=(False, False),
+                 dtype='float64'):
+        self.nz = nz
+        self.nsl, self.nx, self.ny = G.shape
+        self.G = G
+        if saveGt:
+            self.GT = G.transpose((0, 2, 1)).conj()
+        self.shape = (self.nsl * self.nx * self.nz,
+                      self.nsl * self.ny * self.nz)
+        self.dtype = np.dtype(dtype)
+        self.compute = compute
+        self.Op = None
+        self.explicit = False
 
     def _matvec(self, x):
-        pass
+        x = da.squeeze(x.reshape(self.nsl, self.ny, self.nz))
+        if self.nz == 1:
+            x = x[..., np.newaxis]
+        y = da.matmul(self.G, x)
+        return y.ravel()
 
     def _rmatvec(self, x):
-        pass
+        x = np.squeeze(x.reshape(self.nsl, self.nx, self.nz))
+        if self.nz == 1:
+            x = x[..., np.newaxis]
+        if hasattr(self, 'GT'):
+            y = da.matmul(self.GT, x)
+        else:
+            y = da.matmul(self.G.transpose((0, 2, 1)).conj(), x)
+        return y.ravel()
