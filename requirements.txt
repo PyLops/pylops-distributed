@@ -2,4 +2,5 @@ numpy>=1.15.0
 scipy
 numba
 dask[complete]==1.2.2
+dask distributed
 pylops
