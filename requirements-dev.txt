@@ -1,7 +1,7 @@
 numpy>=1.15.0
 scipy
 numba
-dask
+dask[complete]
 pylops[advanced]
 matplotlib
 ipython
