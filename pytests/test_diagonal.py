@@ -15,7 +15,7 @@ par2 = {'ny': 21, 'nx': 11, 'nt': 20, 'imag': 1j,
 np.random.seed(10)
 
 
-@pytest.mark.parametrize("par", [(par2)]) #, [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Diagonal_1dsignal(par):
     """Dot-test and comparision with Pylops for Diagonal operator for 1d signal
     """
@@ -58,7 +58,7 @@ def test_Diagonal_2dsignal(par):
         assert_array_almost_equal(dy, y, decimal=5)
 
 
-@pytest.mark.parametrize("par", [(par2)]) #, [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Diagonal_3dsignal(par):
     """Dot-test and inversion for Diagonal operator for 3d signal
     """
