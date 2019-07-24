@@ -1,10 +1,12 @@
 from .LinearOperator import LinearOperator
-
-from .basicoperators import Spread
 from .basicoperators import Diagonal
+from .basicoperators import Spread
 
 from .utils.backend import dask
 
+from . import basicoperators
+from . import signalprocessing
+from . import utils
 
 try:
     from .version import version as __version__

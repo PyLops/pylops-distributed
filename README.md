@@ -39,6 +39,7 @@ xinv = Dop / y
 and similarly using PyLops-distributed:
 ```python
 import numpy as np
+import dask.array as da
 import pylops_distributed
 from pylops_distributed import Diagonal
 
@@ -57,11 +58,65 @@ y = Dop*x
 xadj = Dop.H*y
 # xinv = D^-1 y
 xinv = Dop / y
+
+da.compute((y, xadj, xinv))
+client.close()
 ```
 
-It is worth noticing two things at this point. First in this specific case we did not even need to reimplement the ``Derivative`` operator.
-Calling numpy operations as methods (e.g., ``x.sum()``) instead of functions (e.g., ``np.sum(x)``) makes it automatic for our operator to act as
-a distributed operator when a dask array is provided instead. Unfortunately not all numpy functions are also implemented as methods: in those cases we
-reimplement the operator directly within PyLops-distributed. Second, using ``*`` and ``.H*`` is still possible also within PyLops-distributed,
-however they will lead to eager evaluation of the dask graph. To avoid that and apply lazy evaluation until the ``compute`` method is explictly invoked
-on a dask array, we need to directly call ``_matvec`` and ``_rmatvec``: don't worry, we will do this for you within our solvers!
+It is worth noticing two things at this point:
+
+- in this specific case we did not even need to reimplement the ``Derivative`` operator.
+  Calling numpy operations as methods (e.g., ``x.sum()``) instead of functions (e.g., ``np.sum(x)``)
+  makes it automatic for our operator to act as a distributed operator when a dask array is provided instead. Unfortunately not all numpy functions are also implemented as methods: in those cases we
+  reimplement the operator directly within PyLops-distributed.
+- Using ``*`` and ``.H*`` is still possible also within PyLops-distributed, however when initializing an
+  operator we will need to decide whether we want to simply create dask graph or also evaluation.
+  This gives flexibility as we can decide if and when apply evaluation using the ``compute`` method
+  on a dask array of choice.
+
+
+## Getting started
+
+You need **Python 3.5 or greater**.
+
+#### From PyPi
+Coming soon...
+
+#### From Github
+
+You can also directly install from the master node
+
+```
+pip install https://git@github.com/equinor/pylops-distributed.git@master
+```
+
+## Contributing
+*Feel like contributing to the project? Adding new operators or tutorial?*
+
+Follow the instructions from [PyLops official documentation](https://pylops.readthedocs.io/en/latest/contributing.html).
+
+## Documentation
+Coming soon...
+
+Moreover, if you have installed PyLops using the *developer environment* you can also build the documentation locally by
+typing the following command:
+```
+make doc
+```
+Once the documentation is created, you can make any change to the source code and rebuild the documentation by
+simply typing
+```
+make docupdate
+```
+Note that if a new example or tutorial is created (and if any change is made to a previously available example or tutorial)
+you are required to rebuild the entire documentation before your changes will be visible.
+
+
+## History
+PyLops-Distributed was initially written and it is currently maintained by [Equinor](https://www.equinor.com).
+It is an extension of [PyLops](https://pylops.readthedocs.io/en/latest/) for large-scale optimization with
+*distributed* linear operators that can be tailored to our needs, and as contribution to the free software community.
+
+
+## Contributors
+* Matteo Ravasi, mrava87

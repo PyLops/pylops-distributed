@@ -15,7 +15,8 @@ Basic operators
 .. autosummary::
    :toctree: generated/
 
-    Spread
+   Diagonal
+   Spread
 
 
 Wave-Equation processing
@@ -26,8 +27,7 @@ Wave-Equation processing
 .. autosummary::
    :toctree: generated/
 
-
-    Demigration
+   Demigration
 
 
 Applications

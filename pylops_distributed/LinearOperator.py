@@ -22,8 +22,13 @@ class LinearOperator(pLinearOperator):
 
     Parameters
     ----------
+    shape : :obj:`tuple`
+        Operator shape
+    dtype : :obj:`torch.dtype`, optional
+        Type of elements in input array.
     Op : :obj:`pylops.LinearOperator`
-        Operator
+        Operator to wrap in ``LinearOperator``
+        (if ``None``, self must implement ``_matvec_`` and  ``_rmatvec_``)
     explicit : :obj:`bool`
         Operator contains a matrix that can be solved explicitly
         (``True``) or not (``False``)
@@ -32,19 +37,29 @@ class LinearOperator(pLinearOperator):
         and return a :obj:`dask.array`
 
     """
-    def __init__(self, Op=None, explicit=False, compute=(False, False)):
-        print(Op)
+    def __init__(self, shape, dtype, Op=None, explicit=False,
+                 compute=(False, False)):
         super().__init__(Op=Op, explicit=explicit)
+        self.shape = shape
+        self.dtype = dtype
+        if Op is None:
+            self.Op = None
         self.compute = compute
 
     def matvec(self, x):
-        y = self.Op._matvec(x)
+        if self.Op is None:
+            y = self._matvec(x)
+        else:
+            y = self.Op._matvec(x)
         if self.compute[0]:
             y = y.compute()
         return y
 
     def rmatvec(self, x):
-        y = self.Op._rmatvec(x)
+        if self.Op is None:
+            y = self._rmatvec(x)
+        else:
+            y = self.Op._rmatvec(x)
         if self.compute[1]:
             y = y.compute()
         return y

@@ -1,6 +1,8 @@
 import logging
 import numpy as np
-from pylops import LinearOperator
+import dask.array as da
+
+from pylops_distributed import LinearOperator
 
 try:
     from numba import jit
@@ -8,11 +10,6 @@ try:
         _rmatvec_numba_table, _matvec_numba_onthefly, _rmatvec_numba_onthefly
 except ModuleNotFoundError:
     jit = None
-
-try:
-    import dask.array as da
-except ModuleNotFoundError:
-    da = None
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
@@ -81,28 +78,8 @@ class Spread(LinearOperator):
 
     Notes
     -----
-    The Spread operator applies the following linear transform in forward mode
-    to the model vector after reshaping it into a 2-dimensional array of size
-    :math:`[n_x \times n_t]`:
-
-    .. math::
-        m(x0, t_0) \rightarrow d(x, t=f(x_0, t_0, x)) \quad \forall x_0, t_0
-
-    where :math:`f(x_0, t_0, x)` is a mapping function that returns a value t
-    given values :math:`x`, :math:`x_0`, and  :math:`t_0`.
-
-    In adjoint mode, the model is reconstructed by means of the following
-    stacking operation:
-
-    .. math::
-        m(x0, t_0) = \int{d(x, t=f(x_0, t_0, x))} dx
-
-    Note that ``table`` (or ``fh``)  must return integer numbers
-    representing indices in the axis :math:`t`. However it also possible to
-    perform linear interpolation as part of the spreading/stacking process by
-    providing the decimal part of the mapping function (:math:`t - \lfloor
-    t \rfloor`) either in ``dtable`` input parameter or as second value in
-    the return of ``fh`` function.
+    Refer to :class:`pylops.basicoperators.Spread` for implementation
+    details.
 
     """
     def __init__(self, dims, dimsd, table=None, dtable=None,
