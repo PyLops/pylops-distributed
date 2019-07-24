@@ -19,6 +19,17 @@ Basic operators
    Spread
 
 
+Signal processing
+~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: pylops_distributed.signalprocessing
+
+.. autosummary::
+   :toctree: generated/
+
+   Fredholm1
+
+
 Wave-Equation processing
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

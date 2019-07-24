@@ -1,15 +1,14 @@
 import pytest
-
 import numpy as np
 import dask.array as da
-from numpy.testing import assert_array_almost_equal
 
+from numpy.testing import assert_array_almost_equal
 from pylops.basicoperators import Diagonal
 from pylops_distributed.utils import dottest
 from pylops_distributed.basicoperators import Diagonal as dDiagonal
 
 par1 = {'ny': 21, 'nx': 11, 'nt': 20, 'imag': 0,
-        'dtype': 'float32'}  # real
+        'dtype': 'float64'}  # real
 par2 = {'ny': 21, 'nx': 11, 'nt': 20, 'imag': 1j,
         'dtype': 'complex64'}  # complex
 
