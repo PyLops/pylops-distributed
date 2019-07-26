@@ -15,7 +15,10 @@ Basic operators
 .. autosummary::
    :toctree: generated/
 
+   MatrixMult
+   Identity
    Diagonal
+   Transpose
    Spread
 
 
@@ -27,6 +30,7 @@ Signal processing
 .. autosummary::
    :toctree: generated/
 
+   FFT
    Fredholm1
 
 
@@ -38,6 +42,7 @@ Wave-Equation processing
 .. autosummary::
    :toctree: generated/
 
+   MDC
    Demigration
 
 

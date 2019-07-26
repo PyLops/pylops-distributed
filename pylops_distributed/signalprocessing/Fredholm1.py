@@ -32,6 +32,13 @@ class Fredholm1(LinearOperator):
     compute : :obj:`tuple`, optional
         Compute the outcome of forward and adjoint or simply define the graph
         and return a :obj:`dask.array`
+    chunks : :obj:`tuple`, optional
+        Chunk size for model and data. If provided it will rechunk the model
+        before applying the forward pass and the data before applying the
+        adjoint pass
+    todask : :obj:`tuple`, optional
+        Apply :func:`dask.array.from_array` to model and data before applying
+        forward and adjoint respectively
     dtype : :obj:`str`, optional
         Type of elements in input array.
 
@@ -45,40 +52,12 @@ class Fredholm1(LinearOperator):
 
     Notes
     -----
-    A multi-dimensional Fredholm integral of first kind can be expressed as
-
-    .. math::
-
-        d(sl, x, z) = \int{G(sl, x, y) m(sl, y, z) dy}
-        \quad \forall sl=1,n_{slice}
-
-    on the other hand its adjoin is expressed as
-
-    .. math::
-
-        m(sl, y, z) = \int{G^*(sl, y, x) d(sl, x, z) dx}
-        \quad \forall sl=1,n_{slice}
-
-    In discrete form, this operator can be seen as a block-diagonal
-    matrix multiplication:
-
-    .. math::
-        \begin{bmatrix}
-            \mathbf{G}_{sl1}  & \mathbf{0}       &  ... & \mathbf{0} \\
-            \mathbf{0}        & \mathbf{G}_{sl2} &  ... & \mathbf{0} \\
-            ...               & ...              &  ... & ...        \\
-            \mathbf{0}        & \mathbf{0}       &  ... & \mathbf{G}_{slN}
-        \end{bmatrix}
-        \begin{bmatrix}
-            \mathbf{m}_{sl1}  \\
-            \mathbf{m}_{sl2}  \\
-            ...     \\
-            \mathbf{m}_{slN}
-        \end{bmatrix}
+    Refer to :class:`pylops.signalprocessing.Identity` for implementation
+    details.
 
     """
     def __init__(self, G, nz=1, saveGt=True, compute=(False, False),
-                 dtype='float64'):
+                 chunks=(None, None), todask=(None, None), dtype='float64'):
         self.nz = nz
         self.nsl, self.nx, self.ny = G.shape
         self.G = G
@@ -88,11 +67,15 @@ class Fredholm1(LinearOperator):
                       self.nsl * self.ny * self.nz)
         self.dtype = np.dtype(dtype)
         self.compute = compute
+        self.chunks = chunks
+        self.todask = todask
         self.Op = None
         self.explicit = False
 
     def _matvec(self, x):
         x = da.squeeze(x.reshape(self.nsl, self.ny, self.nz))
+        if self.chunks[0] is not None:
+            x = x.rechunk(self.chunks[0])
         if self.nz == 1:
             x = x[..., np.newaxis]
         y = da.matmul(self.G, x)
@@ -100,6 +83,8 @@ class Fredholm1(LinearOperator):
 
     def _rmatvec(self, x):
         x = np.squeeze(x.reshape(self.nsl, self.nx, self.nz))
+        if self.chunks[0] is not None:
+            x = x.rechunk(self.chunks[0])
         if self.nz == 1:
             x = x[..., np.newaxis]
         if hasattr(self, 'GT'):

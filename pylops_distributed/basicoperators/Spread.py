@@ -55,6 +55,9 @@ class Spread(LinearOperator):
     compute : :obj:`tuple`, optional
         Compute the outcome of forward and adjoint or simply define the graph
         and return a :obj:`dask.array`
+    todask : :obj:`tuple`, optional
+        Apply :func:`dask.array.from_array` to model and data before applying
+        forward and adjoint respectively
     dtype : :obj:`str`, optional
         Type of elements in input array.
 
@@ -83,7 +86,8 @@ class Spread(LinearOperator):
 
     """
     def __init__(self, dims, dimsd, table=None, dtable=None,
-                 compute=(False, False), dtype='float64'):
+                 compute=(False, False), todask=(False, False),
+                 dtype='float64'):
 
         # input parameters
         self.dims, self.dimsd = dims, dimsd
@@ -92,6 +96,7 @@ class Spread(LinearOperator):
         self.table = table
         self.dtable = dtable
         self.compute =  compute
+        self.todask =  todask
 
         # find out if table has correct size
         if self.table.shape != (self.nx, self.nx0, self.nt0):

@@ -48,6 +48,7 @@ def dottest(Op, nr, nc, chunks, tol=1e-6, complexflag=0,
 
     """
     if complexflag in (0, 2):
+        print(chunks)
         u = da.random.random(nc, chunks=chunks[1])
     else:
         u = da.random.random(nc, chunks=chunks[1]) + \
@@ -68,7 +69,6 @@ def dottest(Op, nr, nc, chunks, tol=1e-6, complexflag=0,
     if not Op.compute[1]:
         x.compute()
 
-    print(u.compute().shape, x.shape)
     if complexflag == 0:
         yy = np.dot(y, v.compute()) # (Op  * u)' * v
         xx = np.dot(u.compute(), x) # u' * (Op' * v)

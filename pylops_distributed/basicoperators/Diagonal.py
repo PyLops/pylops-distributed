@@ -15,7 +15,7 @@ class Diagonal(LinearOperator):
 
     Parameters
     ----------
-    diag : :obj:`numpy.ndarray` or :obj:`torch.Tensor` or :obj:`pytorch_complex_tensor.ComplexTensor`
+    diag : :obj:`dask.array.ndarray`
         Vector to be used for element-wise multiplication.
     dims : :obj:`list`, optional
         Number of samples for each dimension
@@ -24,8 +24,11 @@ class Diagonal(LinearOperator):
         Direction along which multiplication is applied.
     compute : :obj:`tuple`, optional
         Compute the outcome of forward and adjoint or simply define the graph
-        and return a :obj:`dask.array`
-    dtype : :obj:`torch.dtype`, optional
+        and return a :obj:`dask.array.array`
+    todask : :obj:`tuple`, optional
+        Apply :func:`dask.array.from_array` to model and data before applying
+        forward and adjoint respectively
+    dtype : :obj:`str`, optional
         Type of elements in input array.
 
     Attributes
@@ -36,9 +39,15 @@ class Diagonal(LinearOperator):
         Operator contains a matrix that can be solved explicitly (``True``) or
         not (``False``)
 
+    Notes
+    -----
+    Refer to :class:`pylops.basicoperators.Diagonal` for implementation
+    details.
+
     """
     def __init__(self, diag, dims=None, dir=0,
-                 dtype='float64', compute=(False, False)):
+                 compute=(False, False), todask=(False, False),
+                 dtype='float64'):
         Op = pDiagonal(diag, dims=dims, dir=dir, dtype=dtype)
         super().__init__(Op.shape, Op.dtype, Op, explicit=False,
-                         compute=compute)
+                         compute=compute, todask=todask)

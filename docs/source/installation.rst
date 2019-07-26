@@ -82,4 +82,4 @@ a new *bash* shell by typing:
 
 .. code-block:: bash
 
-   >> source activate pylops
+   >> source activate pylops-distributed
