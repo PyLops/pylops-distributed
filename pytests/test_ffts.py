@@ -26,7 +26,7 @@ par5 = {'nt': 101, 'nx': 31, 'ny': 10,
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4), (par5)])
 def test_FFT_1dsignal(par):
-    """Dot-test and comparision with pylops FFT operator for 1d signal
+    """Dot-test and comparison with pylops FFT operator for 1d signal
     """
     dt, f0 = 0.005, 10
     t = np.arange(par['nt']) * dt
@@ -58,7 +58,7 @@ def test_FFT_1dsignal(par):
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4), (par5)])
 def test_FFT_2dsignal(par):
-    """Dot-test and inversion for fft operator for 2d signal
+    """Dot-test and comparison with pylops FFT operator for 2d signal
     (fft on single dimension)
     """
     dt, f0 = 0.005, 10
@@ -121,7 +121,7 @@ def test_FFT_2dsignal(par):
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4), (par5)])
 def test_FFT_3dsignal(par):
-    """Dot-test and inversion for fft operator for 3d signal
+    """Dot-test and comparison with pylops FFT operator for 3d signal
     (fft on single dimension)
     """
     dt, f0 = 0.005, 10

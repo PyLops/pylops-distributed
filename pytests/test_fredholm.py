@@ -1,5 +1,4 @@
 import pytest
-
 import numpy as np
 import dask.array as da
 
@@ -27,7 +26,7 @@ np.random.seed(10)
 @pytest.mark.parametrize("par", [(par1), (par2),
                                  (par3), (par4)])
 def test_Fredholm1(par):
-    """Dot-test and inversion for Fredholm1 operator
+    """Dot-test and comparison with PyLops for Fredholm1 operator
     """
     _F = \
         da.arange(par['nsl'] * par['nx'] *

@@ -1,8 +1,7 @@
 import numpy as np
 import dask.array as da
-from scipy.sparse.linalg.interface import _ScaledLinearOperator, \
-    _SumLinearOperator
 from pylops import LinearOperator as pLinearOperator
+
 
 class LinearOperator(pLinearOperator):
     """Common interface for performing matrix-vector products.
@@ -147,6 +146,17 @@ class LinearOperator(pLinearOperator):
         return _CustomLinearOperator(shape, matvec=self.rmatvec,
                                      rmatvec=self.matvec,
                                      dtype=self.dtype)
+
+    def conj(self):
+        """Complex conjugate operator
+
+        Returns
+        -------
+        eigenvalues : :obj:`pylops.LinearOperator`
+            Complex conjugate operator
+
+        """
+        return _ConjLinearOperator(self)
 
 
 class _CustomLinearOperator(LinearOperator):
@@ -316,3 +326,30 @@ class _PowerLinearOperator(LinearOperator):
     def _adjoint(self):
         A, p = self.args
         return A.H ** p
+
+
+class _ConjLinearOperator(LinearOperator):
+    """Complex conjugate linear operator"""
+    def __init__(self, Op):
+        if not isinstance(Op, pLinearOperator):
+            raise TypeError('Op must be a LinearOperator')
+        super(_ConjLinearOperator, self).__init__(shape=Op.shape,
+                                                  dtype=Op.dtype, Op=None,
+                                                  explicit=Op.explicit,
+                                                  compute=Op.compute,
+                                                  todask=Op.todask)
+        self.oOp = Op # original operator
+
+    def _matvec(self, x):
+        x1 = da.conj(x)
+        y1 = da.conj(self.oOp._matvec(x1))
+        return y1
+
+    def _rmatvec(self, x):
+        x1 = da.conj(x)
+        y1 = da.conj(self.oOp._rmatvec(x1))
+        return y1
+
+    def _adjoint(self):
+        return _ConjLinearOperator(self.oOp.H)
+

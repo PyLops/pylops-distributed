@@ -23,9 +23,6 @@ class Identity(LinearOperator):
         Work inplace (``True``) or make a new copy (``False``). By default,
         data is a reference to the model (in forward) and model is a reference
         to the data (in adjoint).
-    chunks : :obj:`tuple`, optional
-        Chunks for model and data (required only when ``M`` is different
-        from ``N``)
     compute : :obj:`tuple`, optional
         Compute the outcome of forward and adjoint or simply define the graph
         and return a :obj:`dask.array`
@@ -46,7 +43,7 @@ class Identity(LinearOperator):
     Raises
     ------
     ValueError
-        If ``M`` is different from ``N`` and ``chunks`` is not provided
+        If ``M`` is different from ``N``
 
     Notes
     -----
@@ -54,14 +51,10 @@ class Identity(LinearOperator):
     details.
 
     """
-    def __init__(self, N, M=None, inplace=True, chunks=None,
-                 compute=(False, False), todask=(False, False),
-                 dtype='float64'):
+    def __init__(self, N, M=None, inplace=True, compute=(False, False),
+                 todask=(False, False), dtype='float64'):
         M = N if M is None else M
-        if M != N and chunks is None:
-            raise ValueError('Provide chunks when N != M')
         self.inplace = inplace
-        self.chunks = chunks
         self.shape = (N, M)
         self.dtype = np.dtype(dtype)
         self.compute = compute

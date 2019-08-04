@@ -13,7 +13,7 @@ class MatrixMult(LinearOperator):
 
     Parameters
     ----------
-    A : :obj:`dask.array.ndarray` or :obj:`numpy.ndarray`
+    A : :obj:`dask.array.ndarray`
         Matrix.
     dims : :obj:`tuple`, optional
         Number of samples for each other dimension of model
@@ -35,6 +35,11 @@ class MatrixMult(LinearOperator):
     explicit : :obj:`bool`
         Operator contains a matrix that can be solved explicitly
         (``True``) or not (``False``)
+
+    Notes
+    -----
+    Refer to :class:`pylops.basicoperators.MatrixMult` for implementation
+    details.
 
     """
     def __init__(self, A, dims=None, compute=(False, False),

@@ -19,7 +19,11 @@ Basic operators
    Identity
    Diagonal
    Transpose
+   Roll
    Spread
+   VStack
+   HStack
+   BlockDiag
 
 
 Signal processing
@@ -44,6 +48,22 @@ Wave-Equation processing
 
    MDC
    Demigration
+
+
+
+Solvers
+-------
+
+Low-level solvers
+~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: pylops_distributed.optimization
+
+.. autosummary::
+   :toctree: generated/
+
+    cg.cg
+
 
 
 Applications

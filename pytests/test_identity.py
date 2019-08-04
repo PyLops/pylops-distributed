@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import dask.array as da
 
 from numpy.testing import assert_array_almost_equal
 from pylops_distributed.utils import dottest
@@ -26,7 +25,7 @@ def test_Identity_noinplace(par):
     """
     np.random.seed(10)
     Iop = dIdentity(par['ny'], par['nx'], inplace=False,
-                    chunks=(par['ny'] , par['nx']), dtype=par['dtype'])
+                    dtype=par['dtype'])
     assert dottest(Iop, par['ny'], par['nx'], chunks=(par['ny'] , par['nx']),
                    complexflag=0 if par['imag'] == 0 else 3)
 

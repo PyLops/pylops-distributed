@@ -52,7 +52,6 @@ def _MDC(G, nt, nv, dt=1., dr=1., twosided=True, fast=None,
                       dtype=fdtype, **args_Fredholm1)
     if conj:
         Frop = Frop.conj()
-
     # create FFT operators
     nfmax, ns, nr = G.shape
     # ensure that nfmax is not bigger than allowed
@@ -86,14 +85,14 @@ def _MDC(G, nt, nv, dt=1., dr=1., twosided=True, fast=None,
 
     # create MDC operator
     MDCop = F1opH * I1opH * Frop * Iop * Fop
-    print(Fop.todask)
     if transpose:
         MDCop = TopH * MDCop * Top
     return MDCop
 
 
 def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
-        saveGt=True, conj=False, todask=(False, False)):
+        saveGt=True, conj=False, compute=(False, False),
+        todask=(False, False)):
     r"""Multi-dimensional convolution.
 
     Apply multi-dimensional convolution between two datasets.
@@ -127,6 +126,9 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
         faster but double the amount of required memory
     conj : :obj:`str`, optional
         Perform Fredholm integral computation with complex conjugate of ``G``
+    compute : :obj:`tuple`, optional
+        Compute the outcome of forward and adjoint or simply define the graph
+        and return a :obj:`dask.array`
     todask : :obj:`tuple`, optional
         Apply :func:`dask.array.from_array` to model and data before applying
         forward and adjoint respectively
@@ -149,10 +151,10 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
                                            (G.chunks[0], G.shape[0],
                                             G.shape[1]))},
                 args_FFT={'chunks': (None, (nt, G.shape[0], nv)),
-                          'todask':(todask[0], False)},
-                args_FFT1={'chunks': (None, (nt, G.shape[0], nv))},
-                args_Identity={'chunks': ((nt * nv * G.shape[0]),
-                                          (nt * nv * G.shape[0]))},
-                args_Identity1={'chunks': ((nt * nv * G.shape[0]),
-                                           (nt * nv * G.shape[0])),
-                                'todask': (False, todask[1])})
+                          'todask':(todask[0], False),
+                          'compute': (False, compute[1])},
+                args_FFT1={'chunks': (None, (nt, G.shape[0], nv)),
+                           'compute':(False, compute[0])},
+                args_Identity1={'todask': (False, todask[1])},
+                args_Transpose={'compute': (False, compute[1])},
+                args_Transpose1={'compute':(False, compute[0])})

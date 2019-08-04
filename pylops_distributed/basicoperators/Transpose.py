@@ -1,6 +1,7 @@
 import numpy as np
 from pylops import LinearOperator as pLinearOperator
 from pylops_distributed import LinearOperator
+#from pylops.basicoperators import Transpose as pTranspose
 
 
 class pTranspose(pLinearOperator):

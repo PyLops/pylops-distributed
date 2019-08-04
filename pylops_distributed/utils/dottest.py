@@ -19,7 +19,7 @@ def dottest(Op, nr, nc, chunks, tol=1e-6, complexflag=0,
     nc : :obj:`int`
         Number of columns of operator (i.e., elements in model)
     chunks : :obj:`tuple`, optional
-        Chunks for model and data
+        Chunks for data and model
     tol : :obj:`float`, optional
         Dottest tolerance
     complexflag : :obj:`bool`, optional
@@ -48,7 +48,6 @@ def dottest(Op, nr, nc, chunks, tol=1e-6, complexflag=0,
 
     """
     if complexflag in (0, 2):
-        print(chunks)
         u = da.random.random(nc, chunks=chunks[1])
     else:
         u = da.random.random(nc, chunks=chunks[1]) + \
