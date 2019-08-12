@@ -54,6 +54,23 @@ class LinearOperator(pLinearOperator):
         self.todask = todask
 
     def matvec(self, x):
+        r"""Matrix-vector multiplication.
+
+        Performs the operation :math:`\mathbf{y}=\mathbf{A}\mathbf{x}`
+        where :math:`\mathbf{A}` is an :math:`N \times M` linear operator
+        and :math:`\mathbf{x}` is a column vector.
+
+        Parameters
+        ----------
+        x : :obj:`dask.array` or :obj:`numpy.ndarray`
+            An array with shape ``(M, )`` or ``(M, 1)``.
+
+        Returns
+        -------
+        y : :obj:`dask.array` or :obj:`numpy.ndarray`
+            An array with shape ``(N, )`` or ``(N, 1)``
+
+        """
         if self.todask[0]:
             x = da.from_array(x)
         if self.Op is None:
@@ -66,6 +83,23 @@ class LinearOperator(pLinearOperator):
         return y
 
     def rmatvec(self, x):
+        r"""Adjoint Matrix-vector multiplication.
+
+        Performs the operation :math:`\mathbf{y}=\mathbf{A}^H\mathbf{x}`
+        where :math:`\mathbf{A}` is an :math:`N \times M` linear operator
+        and :math:`\mathbf{x}` is a column vector.
+
+        Parameters
+        ----------
+        x : :obj:`dask.array` or :obj:`numpy.ndarray`
+            An array with shape ``(N, )`` or ``(N, 1)``.
+
+        Returns
+        -------
+        y : :obj:`dask.array` or :obj:`numpy.ndarray`
+            An array with shape ``(M, )`` or ``(M, 1)``
+
+        """
         if self.todask[1]:
             x = da.from_array(x)
         if self.Op is None:

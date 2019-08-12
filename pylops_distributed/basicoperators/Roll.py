@@ -49,7 +49,6 @@ class Roll(LinearOperator):
     details.
 
     """
-
     def __init__(self, N, dims=None, dir=0, shift=1, compute=(False, False),
                  todask=(False, False), dtype='float64'):
         self.N = N

@@ -1,39 +1,7 @@
 import numpy as np
 from pylops import LinearOperator as pLinearOperator
 from pylops_distributed import LinearOperator
-#from pylops.basicoperators import Transpose as pTranspose
-
-
-class pTranspose(pLinearOperator):
-    def __init__(self, dims, axes, dtype='float64'):
-        self.dims = list(dims)
-        self.axes = list(axes)
-
-        # find out if all axes are present only once in axes
-        ndims = len(self.dims)
-        if len(np.unique(self.axes)) != ndims:
-            raise ValueError('axes must contain each direction once')
-
-        # find out how axes should be transposed in adjoint mode
-        self.axesd = np.zeros(ndims, dtype=np.int)
-        self.dimsd = np.zeros(ndims, dtype=np.int)
-        self.axesd[self.axes] = np.arange(ndims, dtype=np.int)
-        self.dimsd[self.axesd] = self.dims
-        self.axesd = list(self.axesd)
-
-        self.shape = (np.prod(self.dims), np.prod(self.dims))
-        self.dtype = np.dtype(dtype)
-        self.explicit = False
-
-    def _matvec(self, x):
-        y = x.reshape(self.dims)
-        y = y.transpose(self.axes)
-        return y.ravel()
-
-    def _rmatvec(self, x):
-        y = x.reshape(self.dimsd)
-        y = y.transpose(self.axesd)
-        return y.ravel()
+from pylops.basicoperators import Transpose as _Transpose
 
 
 class Transpose(LinearOperator):
@@ -81,6 +49,6 @@ class Transpose(LinearOperator):
     """
     def __init__(self, dims, axes, compute=(False, False),
                  todask=(False, False), dtype='float64'):
-        Op = pTranspose(dims, axes, dtype=dtype)
+        Op = _Transpose(dims, axes, dtype=dtype)
         super().__init__(Op.shape, Op.dtype, Op, explicit=False,
                          compute=compute, todask=todask)

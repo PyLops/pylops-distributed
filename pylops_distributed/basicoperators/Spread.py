@@ -199,8 +199,8 @@ class Spread(LinearOperator):
         #    y = y.persist()#.ravel()
         return y
 
-    def matvec(self, x):
-        return self._matvec(x)
+    #def matvec(self, x):
+    #    return self._matvec(x)
 
-    def rmatvec(self, x):
-        return self._rmatvec(x)
+    #def rmatvec(self, x):
+    #    return self._rmatvec(x)
