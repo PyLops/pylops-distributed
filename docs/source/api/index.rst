@@ -57,12 +57,13 @@ Solvers
 Low-level solvers
 ~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: pylops_distributed.optimization
+.. currentmodule:: pylops_distributed.optimization.cg
 
 .. autosummary::
    :toctree: generated/
 
-    cg.cg
+    cg
+    cgls
 
 
 

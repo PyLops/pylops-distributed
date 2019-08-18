@@ -24,7 +24,8 @@ np.random.seed(10)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2),
-                                 (par3), (par4)])
+                                 (par3), (par4),
+                                 (par5), (par6)])
 def test_Fredholm1(par):
     """Dot-test and comparison with PyLops for Fredholm1 operator
     """

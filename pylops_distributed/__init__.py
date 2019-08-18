@@ -10,7 +10,7 @@ from .basicoperators import HStack
 from .basicoperators import Block
 from .basicoperators import BlockDiag
 
-from .optimization.cg import cg
+from .optimization.cg import cg, cgls
 
 from .utils.backend import dask
 
