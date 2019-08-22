@@ -11,7 +11,7 @@ This allows lazy loading using a `Dask <https://dask.org>`_
 array and distributing over frequencies the computation of the various
 Fredholm integrals involved in the forward model.
 """
-# sphinx_gallery_thumbnail_number = 5
+# sphinx_gallery_thumbnail_number = 2
 import warnings
 import numpy as np
 import dask.array as da
