@@ -165,11 +165,9 @@ class Marchenko():
 
         # Create operators
         Rop = MDC(self.Rtwosided_fft, self.nt2, nv=1, dt=self.dt, dr=self.dr,
-                  twosided=True, conj=False, saveGt=self.saveRt,
-                  todask=(True, True))
+                  twosided=True, conj=False, saveGt=self.saveRt)
         R1op = MDC(self.Rtwosided_fft, self.nt2, nv=1, dt=self.dt, dr=self.dr,
-                   twosided=True, conj=True, saveGt=self.saveRt,
-                   todask=(True, True))
+                   twosided=True, conj=True, saveGt=self.saveRt)
         Rollop = Roll(self.nt2 * self.ns,
                       dims=(self.nt2, self.ns),
                       dir=0, shift=-1, dtype=self.dtype)
