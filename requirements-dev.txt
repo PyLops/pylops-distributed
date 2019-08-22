@@ -2,6 +2,7 @@ numpy>=1.15.0
 scipy>=1.1.0
 numba
 dask[complete]>=2.0.0
+zarr
 pylops[advanced]
 matplotlib
 ipython

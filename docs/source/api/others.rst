@@ -10,6 +10,17 @@ the preparation of input data and subsequent visualization of results.
 Shared
 ------
 
+Backends
+~~~~~~~~
+
+.. currentmodule:: pylops_distributed.utils
+
+.. autosummary::
+   :toctree: generated/
+
+    backend.dask
+
+
 Dot-test
 ~~~~~~~~
 
@@ -21,12 +32,3 @@ Dot-test
     dottest
 
 
-Backends
-~~~~~~~~
-
-.. currentmodule:: pylops_distributed.utils
-
-.. autosummary::
-   :toctree: generated/
-
-    backend.dask

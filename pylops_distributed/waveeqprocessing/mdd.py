@@ -1,9 +1,4 @@
 import logging
-import warnings
-import numpy as np
-
-from scipy.sparse.linalg import lsqr
-from scipy.ndimage.filters import convolve1d as sp_convolve1d
 from pylops.waveeqprocessing.mdd import _MDC
 
 from pylops_distributed import Diagonal, Identity, Transpose
@@ -55,10 +50,6 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
     todask : :obj:`tuple`, optional
         Apply :func:`dask.array.from_array` to model and data before applying
         forward and adjoint respectively
-
-    See Also
-    --------
-    MDD : Multi-dimensional deconvolution
 
     Notes
     -----

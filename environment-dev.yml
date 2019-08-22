@@ -16,6 +16,7 @@ dependencies:
   - numba
   - icc_rt
   - dask>=2.0.0
+  - zarr
   - pylops
   - pip:
     - spgl1
