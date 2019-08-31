@@ -1,4 +1,4 @@
-![PyLops-distributed](https://github.com/equinor/pylops-distributed/blob/master/docs/source/_static/d-pylops_b.png)
+![PyLops-distributed](https://github.com/equinor/pylops-distributed/blob/master/docs/source/_static/distr-pylops_b.png)
 
 [![Build Status](https://travis-ci.org/equinor/pylops-distributed.svg?branch=master)](https://travis-ci.org/equinor/pylops-distributed)
 [![AzureDevOps Status](https://dev.azure.com/MRAVA/PyLops/_apis/build/status/equinor.pylops-distributed?branchName=master)](https://dev.azure.com/MRAVA/PyLops/_build/latest?definitionId=3&branchName=master)
