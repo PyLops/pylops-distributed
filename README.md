@@ -103,7 +103,8 @@ pip install https://git@github.com/equinor/pylops-distributed.git@master
 Follow the instructions from [PyLops official documentation](https://pylops.readthedocs.io/en/latest/contributing.html).
 
 ## Documentation
-Coming soon...
+The official documentation of PyLops-distributed is available [here](https://pylops-distributed.readthedocs.io/).
+
 
 Moreover, if you have installed PyLops using the *developer environment* you can also build the documentation locally by
 typing the following command:
