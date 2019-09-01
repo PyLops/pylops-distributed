@@ -72,7 +72,7 @@ class LinearOperator(pLinearOperator):
 
         """
         if self.todask[0]:
-            x = da.from_array(x)
+            x = da.asarray(x)
         if self.Op is None:
             y = self._matvec(x)
         else:
@@ -101,7 +101,7 @@ class LinearOperator(pLinearOperator):
 
         """
         if self.todask[1]:
-            x = da.from_array(x)
+            x = da.asarray(x)
         if self.Op is None:
             y = self._rmatvec(x)
         else:
