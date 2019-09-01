@@ -67,7 +67,6 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
                           'todask':(todask[0], False),
                           'compute': (False, compute[1])},
                 args_FFT1={'chunks': (None, (nt, G.shape[1], nv)),
-                           'compute':(False, compute[0])},
-                args_Identity1={'todask': (False, todask[1])},
-                args_Transpose={'compute': (False, compute[1])},
-                args_Transpose1={'compute':(False, compute[0])})
+                           'todask': (todask[1], False),
+                           'compute':(compute[0], False)})
+

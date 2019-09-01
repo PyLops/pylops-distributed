@@ -83,7 +83,7 @@ def cgls(A, y, x=None, niter=10, damp=0., compute=False):
     where :math:`\epsilon` is the damping coefficient.
     """
     if x is None:
-        x = da.zeros_like(y)
+        x = da.zeros(A.shape[1], dtype=y.dtype)
     s = y - A.matvec(x)
     r = A.rmatvec(s) - damp * x
     c = r
