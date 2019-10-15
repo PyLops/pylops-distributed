@@ -5,6 +5,7 @@ from .basicoperators import Identity
 from .basicoperators import Transpose
 from .basicoperators import Roll
 from .basicoperators import Spread
+from .basicoperators import Restriction
 from .basicoperators import VStack
 from .basicoperators import HStack
 from .basicoperators import Block
