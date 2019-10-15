@@ -120,6 +120,7 @@ class Spread(LinearOperator):
         self.shape = (int(np.prod(self.dimsd)), int(np.prod(self.dims)))
         self.dtype = np.dtype(dtype)
         self.explicit = False
+        self.Op = None
 
     def _matvec(self, x):
         def _matvec_chunk(y, x, table, dtable, dims, nt0, nx0):

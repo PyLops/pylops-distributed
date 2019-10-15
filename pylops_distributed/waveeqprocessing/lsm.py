@@ -71,7 +71,6 @@ def _traveltime_twoway(trav_template, trav_src, trav_recs, npoints):
     for isrc in range(trav_src.shape[1]):
         trav_srcrec[:, isrc * trav_recs.shape[1]:(isrc + 1) * trav_recs.shape[1]] = \
             trav_src[:, isrc][:, np.newaxis] + trav_recs
-    print(trav_srcrec.shape)
     return trav_srcrec
 
 def _traveltime_table(z, x, srcs, recs, vel, y=None,
@@ -126,8 +125,8 @@ def _traveltime_table(z, x, srcs, recs, vel, y=None,
             _identify_geometry(z, x, srcs, recs, y=y)
 
         if skfmm is not None:
-            chunkdim_src = ns//(nprocesses-1)
-            chunkdim_rec = nr//(nprocesses-1)
+            chunkdim_src = ns//(nprocesses-1) if nprocesses > 1 else ns
+            chunkdim_rec = nr//(nprocesses-1) if nprocesses > 1 else nr
 
             srcs = da.from_array(srcs, chunks=(2, chunkdim_src), name='srcs')
             recs = da.from_array(recs, chunks=(2, chunkdim_rec), name='recs')
@@ -258,7 +257,7 @@ def Demigration(z, x, t, srcs, recs, vel, wav, wavcenter,
         if mode in ['analytic', 'eikonal']:
             # compute traveltime table
             trav, trav_src, trac_rec = _traveltime_table(z, x, srcs, recs, vel, y=y,
-                                     mode=mode, nprocesses=nprocesses)
+                                                         mode=mode, nprocesses=nprocesses)
         trav = trav.reshape(ny * nx, nz, ns * nr).transpose(2, 0, 1)
         itrav = (trav / dt).astype('int32')
         travd = (trav / dt - itrav)
