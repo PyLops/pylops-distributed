@@ -20,6 +20,7 @@ Basic operators
    Diagonal
    Transpose
    Roll
+   Restriction
    Spread
    VStack
    HStack
