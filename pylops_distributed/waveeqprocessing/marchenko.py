@@ -219,7 +219,7 @@ class Marchenko():
                             da.zeros((self.nt2, self.ns))))
 
         # Invert for focusing functions
-        f1_inv = cgls(Mop, d.flatten(), **kwargs_cgls)
+        f1_inv = cgls(Mop, d.flatten(), **kwargs_cgls)[0]
         f1_inv = f1_inv.reshape(2 * self.nt2, self.nr)
         f1_inv_tot = f1_inv + da.concatenate((da.zeros((self.nt2, self.nr)),
                                               fd_plus))
@@ -387,7 +387,7 @@ class Marchenko():
                             da.zeros((self.nt2, self.ns, nvs))))
 
         # Invert for focusing functions
-        f1_inv = cgls(Mop, d.flatten(), **kwargs_cgls)
+        f1_inv = cgls(Mop, d.flatten(), **kwargs_cgls)[0]
         f1_inv = f1_inv.reshape(2 * self.nt2, self.nr, nvs)
         f1_inv_tot = \
             f1_inv + da.concatenate((np.zeros((self.nt2, self.nr, nvs)),

@@ -85,14 +85,21 @@ def test_Marchenko():
     MarchenkoWM = Marchenko(Rtwosided_fft, nt=nt, dt=dt, dr=dr,
                             wav=wav, toff=toff, nsmooth=nsmooth)
 
-    _, _, dp0_minus = \
-        dMarchenkoWM.apply_onepoint(trav, nfft=2 ** 11, rtm=True, greens=False,
-                                    dottest=True, **dict(niter=0, compute=0))
+    _, _, dp0_minus, dg_inv_minus, dg_inv_plus = \
+        dMarchenkoWM.apply_onepoint(trav, nfft=2 ** 11, rtm=True, greens=True,
+                                    dottest=True, **dict(niter=10,
+                                                         compute=False))
 
     _, _, p0_minus = \
         MarchenkoWM.apply_onepoint(trav, nfft=2 ** 11, rtm=True, greens=False,
-                                   dottest=True, **dict(iter_lim=0, show=0))
+                                   dottest=False, **dict(iter_lim=0, show=0))
     assert_array_almost_equal(dp0_minus, p0_minus, decimal=5)
+
+    dginvsub = (dg_inv_minus + dg_inv_plus)[:, nt - 1:].T
+    dginvsub_norm = dginvsub / dginvsub.max()
+    gsub_norm = gsub / gsub.max()
+    assert np.linalg.norm(gsub_norm - dginvsub_norm) / \
+           np.linalg.norm(gsub_norm) < 1e-1
 
 
 def test_Marchenko__multi():
@@ -104,16 +111,19 @@ def test_Marchenko__multi():
     MarchenkoWM = Marchenko(Rtwosided_fft, nt=nt, dt=dt, dr=dr,
                             wav=wav, toff=toff, nsmooth=nsmooth)
 
-    df_inv_minus, df_inv_plus, dp0_minus = \
+    _, _, dp0_minus, dg_inv_minus, dg_inv_plus = \
         dMarchenkoWM.apply_multiplepoints(trav_multi, nfft=2 ** 11, rtm=True,
-                                          greens=False, dottest=True,
-                                          **dict(niter=0, compute=0))
+                                          greens=True, dottest=True,
+                                          **dict(niter=10, compute=False))
 
-    f_inv_minus, f_inv_plus, p0_minus = \
+    _, _, p0_minus = \
         MarchenkoWM.apply_multiplepoints(trav_multi, nfft=2 ** 11, rtm=True,
-                                         greens=False, dottest=True,
+                                         greens=False, dottest=False,
                                          **dict(iter_lim=0, show=0))
-
-    assert_array_almost_equal(df_inv_minus, f_inv_minus, decimal=5)
-    assert_array_almost_equal(df_inv_plus, f_inv_plus, decimal=5)
     assert_array_almost_equal(dp0_minus, p0_minus, decimal=5)
+
+    dginvsub = (dg_inv_minus + dg_inv_plus)[:, 1, nt - 1:].T
+    dginvsub_norm = dginvsub / dginvsub.max()
+    gsub_norm = gsub / gsub.max()
+    assert np.linalg.norm(gsub_norm - dginvsub_norm) / \
+           np.linalg.norm(gsub_norm) < 1e-1

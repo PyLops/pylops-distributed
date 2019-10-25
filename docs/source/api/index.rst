@@ -36,6 +36,7 @@ Signal processing
    :toctree: generated/
 
    FFT
+   Convolve1D
    Fredholm1
 
 
@@ -65,7 +66,6 @@ Low-level solvers
 
     cg
     cgls
-
 
 
 Applications
