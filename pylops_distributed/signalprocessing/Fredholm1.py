@@ -61,10 +61,13 @@ class Fredholm1(LinearOperator):
         self.nz = nz
         self.nsl, self.nx, self.ny = G.shape
         self.G = G
-        if saveGt:
-            self.GT = G.transpose((0, 2, 1)).conj()
         self.shape = (self.nsl * self.nx * self.nz,
                       self.nsl * self.ny * self.nz)
+        if saveGt:
+            self.GT = G.transpose((0, 2, 1)).conj().persist()
+        else:
+            # choose what to transpose if Gt is not saved
+            self.transposeG = True if self.G.size < self.shape[0] else False
         self.dtype = np.dtype(dtype)
         self.compute = compute
         self.chunks = chunks
@@ -90,5 +93,9 @@ class Fredholm1(LinearOperator):
         if hasattr(self, 'GT'):
             y = da.matmul(self.GT, x)
         else:
-            y = da.matmul(self.G.transpose((0, 2, 1)).conj(), x)
+            if self.transposeG:
+                y = da.matmul(self.G.transpose((0, 2, 1)).conj(), x)
+            else:
+                y = da.matmul(x.transpose(0, 2, 1).conj(),
+                              self.G).transpose(0, 2, 1).conj()
         return y.ravel()

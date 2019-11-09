@@ -1,9 +1,8 @@
 import logging
 from pylops.waveeqprocessing.mdd import _MDC
 
-from pylops_distributed import Diagonal, Identity, Transpose
+from pylops_distributed import Identity, Transpose
 from pylops_distributed.signalprocessing import FFT, Fredholm1
-from pylops_distributed.utils import dottest as Dottest
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
 

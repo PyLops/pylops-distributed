@@ -75,12 +75,17 @@ Rtwosided_fft = Rtwosided_fft[..., :nfmax]
 dRtwosided_fft = da.from_zarr(inputzarr)
 
 
-def test_Marchenko():
+par1 = {'saveRt': True}  # square real
+par2 = {'saveRt': False}  # overdetermined real
+
+
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Marchenko(par):
     """Dot-test and comparison with pylops for Marchenko.apply_onepoint
     """
     dMarchenkoWM = dMarchenko(dRtwosided_fft, nt=nt, dt=dt, dr=dr,
-                              wav=wav, toff=toff, nsmooth=nsmooth)
-
+                              wav=wav, toff=toff, nsmooth=nsmooth,
+                              saveRt=par['saveRt'])
 
     MarchenkoWM = Marchenko(Rtwosided_fft, nt=nt, dt=dt, dr=dr,
                             wav=wav, toff=toff, nsmooth=nsmooth)
@@ -102,11 +107,13 @@ def test_Marchenko():
            np.linalg.norm(gsub_norm) < 1e-1
 
 
-def test_Marchenko__multi():
+@pytest.mark.parametrize("par", [(par1), (par2)])
+def test_Marchenko__multi(par):
     """Dot-test and comparison with pylops for Marchenko.apply_multiplepoints
     """
     dMarchenkoWM = dMarchenko(dRtwosided_fft, nt=nt, dt=dt, dr=dr,
-                              wav=wav, toff=toff, nsmooth=nsmooth)
+                              wav=wav, toff=toff, nsmooth=nsmooth,
+                              saveRt=par['saveRt'])
 
     MarchenkoWM = Marchenko(Rtwosided_fft, nt=nt, dt=dt, dr=dr,
                             wav=wav, toff=toff, nsmooth=nsmooth)

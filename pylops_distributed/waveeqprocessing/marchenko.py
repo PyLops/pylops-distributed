@@ -153,8 +153,6 @@ class Marchenko():
         # Create window
         trav_off = trav - self.toff
         trav_off = np.round(trav_off / self.dt).astype(np.int)
-
-        # window
         w = np.zeros((self.nr, self.nt))
         for ir in range(self.nr):
             w[ir, :trav_off[ir]] = 1
@@ -392,7 +390,6 @@ class Marchenko():
         f1_inv_tot = \
             f1_inv + da.concatenate((np.zeros((self.nt2, self.nr, nvs)),
                                      fd_plus))
-
         if greens:
             # Create Green's functions
             g_inv = Gop * f1_inv_tot.flatten()
