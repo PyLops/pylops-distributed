@@ -154,18 +154,13 @@ class Spread(LinearOperator):
                           self.dims, self.nt0, self.nx0, dtype=self.dtype,
                           name='spread_forward_dask')
         y = y.ravel()
-        if self.compute[0]:
-            y = y.compute()
-        #else:
-        #    y = y.persist()#.ravel()
         return y
 
     def _rmatvec(self, x):
         def _rmatvec_chunk(y, x, table, dtable, dims):
             """apply matvec for a chunk of the data vector
             """
-            y = y.squeeze()
-            x = x.squeeze()
+            y, x = y.squeeze(), x.squeeze()
             table = table.transpose(1, 2, 0)
             if dtable is not None:
                 dtable = dtable.transpose(1, 2, 0)
@@ -194,14 +189,4 @@ class Spread(LinearOperator):
                           self.dtable.reshape(self.nx, self.nx0, self.nt0),
                           self.dims, dtype=np.float, name='spread_adj_dask')
         y = y.sum(axis=0).ravel()
-        if self.compute[0]:
-            y = y.compute()
-        # else:
-        #    y = y.persist()#.ravel()
         return y
-
-    #def matvec(self, x):
-    #    return self._matvec(x)
-
-    #def rmatvec(self, x):
-    #    return self._rmatvec(x)

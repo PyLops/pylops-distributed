@@ -3,12 +3,12 @@ import numpy as np
 import dask.array as da
 
 from scipy.sparse.linalg import lsqr
-from pylops.signalprocessing import Convolve1D
 from pylops.waveeqprocessing.lsm import _traveltime_table \
     as _traveltime_table_single_core
 
-from pylops.utils import dottest as Dottest
+from pylops_distributed.utils import dottest as Dottest
 from pylops_distributed import Spread
+from pylops_distributed.signalprocessing import Convolve1D
 
 try:
     import skfmm
@@ -155,7 +155,6 @@ def _traveltime_table(z, x, srcs, recs, vel, y=None,
                                  trav_srcs, trav_recs,
                                  ny * nx * nz, dtype='float',
                                  name='traveltime-sum')
-            #trav = trav.persist()
         else:
             raise NotImplementedError('cannot compute traveltime with '
                                       'method=eikonal as skfmm is not '
@@ -169,7 +168,8 @@ def _traveltime_table(z, x, srcs, recs, vel, y=None,
 
 
 def Demigration(z, x, t, srcs, recs, vel, wav, wavcenter,
-                y=None, mode='eikonal', trav=None, nprocesses=None):
+                y=None, mode='eikonal', trav=None, nprocesses=None,
+                client=None):
     r"""Demigration operator.
 
     Seismic demigration/migration operator.
@@ -204,6 +204,8 @@ def Demigration(z, x, t, srcs, recs, vel, wav, wavcenter,
         To be provided only when ``mode='byot'``
     nprocesses : :obj:`str`, optional
         Number of processes to split computations
+    client : :obj:`dask.distributed.client.Client`, optional
+        Dask client. If provided, the traveltime computation will be persisted.
 
     Returns
     -------
@@ -262,23 +264,27 @@ def Demigration(z, x, t, srcs, recs, vel, wav, wavcenter,
         itrav = (trav / dt).astype('int32')
         travd = (trav / dt - itrav)
 
+        # persist traveltime arrays to avoid repeating computations
+        if client is not None:
+            itrav, travd = client.persist([itrav, travd])
+
         # define dimensions
         if ndim == 2:
             dims = tuple(dims)
         else:
             dims = (dims[0]*dims[1], dims[2])
 
-        # create operator
+        # create operators (todask is temporary until inversion works even
+        # without forcing compute)
         sop = Spread(dims=dims, dimsd=(ns * nr, nt),
-                     table=itrav, dtable=travd)
+                     table=itrav, dtable=travd, todask=(True, False))
 
-        #cop = Convolve1D(ns * nr * nt, h=wav, offset=wavcenter,
-        #                 dims=(ns * nr, nt),
-        #                 dir=1)
-        #demop = cop * sop
+        cop = Convolve1D(ns * nr * nt, h=wav, offset=wavcenter,
+                         dims=(ns * nr, nt), dir=1, todask=(False, True))
+        demop = cop * sop
     else:
         raise NotImplementedError('method must be analytic, eikonal, or byot')
-    return sop
+    return demop
 
 
 class LSM():
@@ -354,14 +360,16 @@ class LSM():
 
     """
     def __init__(self, z, x, t, srcs, recs, vel, wav, wavcenter, y=None,
-                 mode='eikonal', trav=None, dottest=False, nprocesses=None):
+                 mode='eikonal', trav=None, dottest=False,
+                 nprocesses=None, client=None):
         self.y, self.x, self.z = y, x, z
         self.Demop = Demigration(z, x, t, srcs, recs, vel, wav, wavcenter,
                                  y=y, mode=mode, trav=trav,
-                                 nprocesses=nprocesses)
+                                 nprocesses=nprocesses, client=client)
         if dottest:
             Dottest(self.Demop, self.Demop.shape[0], self.Demop.shape[1],
-                    raiseerror=True, verb=True)
+                    chunks=(self.Demop.shape[0]//nprocesses,
+                            self.Demop.shape[1]), raiseerror=True, verb=True)
 
     def solve(self, d, solver=lsqr, **kwargs_solver):
         r"""Solve least-squares migration equations with chosen ``solver``
@@ -383,7 +391,9 @@ class LSM():
             n_x \times n_z \rbrack`
 
         """
-        minv = solver(self.Demop, d.ravel(), **kwargs_solver)[0]
+        minv = solver(self.Demop, d.ravel(), **kwargs_solver)
+        if isinstance(minv, (list, tuple)):
+            minv = minv[0]
 
         if self.y is None:
             minv = minv.reshape(len(self.x), len(self.z))

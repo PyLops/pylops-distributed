@@ -29,11 +29,11 @@ def test_cg(par):
     Aop = MatrixMult(Ada, compute=(False, False))
     y = Aop * x
 
-    # no starting gues
+    # no starting guess
     xinv = cg(Aop, y, niter=par['nx'])[0]
     assert_array_almost_equal(x.compute(), xinv.compute(), decimal=5)
 
-    # starting gues
+    # with starting guess
     xinv = cg(Aop, y, da.zeros(par['nx']), niter=par['nx'])[0]
     assert_array_almost_equal(x.compute(), xinv.compute(), decimal=5)
 
@@ -45,15 +45,16 @@ def test_cgls(par):
     np.random.seed(10)
     x = da.arange(par['nx']) + par['imag'] * np.arange(par['nx'])
 
-    A = np.random.randn(par['ny'], par['nx'])
+    A = np.random.randn(par['ny'], par['nx']) + \
+        par['imag'] * np.random.randn(par['ny'], par['nx'])
     Ada = da.from_array(A, chunks=(par['ny'] // 2, par['nx']))
     Aop = MatrixMult(Ada, compute=(False, False))
     y = Aop * x
 
-    # no starting gues
+    # no starting guess
     xinv = cgls(Aop, y, niter=par['nx'])[0]
     assert_array_almost_equal(x.compute(), xinv.compute(), decimal=5)
 
-    # starting gues
+    # with starting guess
     xinv = cgls(Aop, y, da.zeros(par['nx']), niter=par['nx'])[0]
     assert_array_almost_equal(x.compute(), xinv.compute(), decimal=5)
