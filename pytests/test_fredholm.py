@@ -13,8 +13,8 @@ par2 = {'nsl': 4, 'ny': 6, 'nx': 4, 'nz': 5,
         'saveGt': False, 'imag': 0, 'dtype': 'float32'}  # real, unsaved Gt
 par3 = {'nsl': 4, 'ny': 6, 'nx': 4, 'nz': 5,
         'saveGt':True, 'imag': 1j, 'dtype': 'complex64'}  # complex, saved Gt
-par4 = {'nsl': 4, 'ny': 6, 'nx': 4, 'nz': 5, 'saveGt': False,
-        'imag': 1j, 'dtype': 'complex64'}  # complex, unsaved Gt
+par4 = {'nsl': 4, 'ny': 6, 'nx': 4, 'nz': 5,
+        'saveGt': False, 'imag': 1j, 'dtype': 'complex64'}  # complex, unsaved Gt
 par5 = {'nsl': 4, 'ny': 6, 'nx': 4, 'nz': 1,
         'saveGt': True, 'imag': 0, 'dtype': 'float32'}  # real, saved Gt, nz=1
 par6 = {'nsl': 4, 'ny': 6, 'nx': 4, 'nz': 1,
@@ -54,3 +54,4 @@ def test_Fredholm1(par):
     dy = dFop * x.ravel()
     y = Fop * x.ravel().compute()
     assert_array_almost_equal(dy, y, decimal=5)
+    
