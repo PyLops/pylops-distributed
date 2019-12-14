@@ -371,7 +371,7 @@ class Marchenko():
 
         fd_plus = np.concatenate((np.flip(G0, axis=-1).transpose(2, 0, 1),
                                   np.zeros((self.nt - 1, self.nr, nvs))))
-        fd_plus = da.from_array(fd_plus)
+        fd_plus = da.from_array(fd_plus).rechunk(fd_plus.shape)
 
         # Run standard redatuming as benchmark
         if rtm:

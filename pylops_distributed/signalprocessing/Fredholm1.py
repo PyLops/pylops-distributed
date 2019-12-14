@@ -64,7 +64,7 @@ class Fredholm1(LinearOperator):
         self.shape = (self.nsl * self.nx * self.nz,
                       self.nsl * self.ny * self.nz)
         if saveGt:
-            self.GT = G.transpose((0, 2, 1)).conj().persist()
+            self.GT = (G.transpose((0, 2, 1)).conj()).persist()
         else:
             # choose what to transpose if Gt is not saved
             self.transposeG = True if self.G.size < self.shape[0] else False
