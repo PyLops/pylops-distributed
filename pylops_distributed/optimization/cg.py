@@ -101,8 +101,7 @@ def cgls(A, y, x=None, niter=10, damp=0., tol=1e-4,
     tol : :obj:`float`, optional
         Tolerance on residual norm
     compute : :obj:`tuple`, optional
-        Dask client. If provided when ``compute=None`` each iteration
-        is persisted. This is the preferred method.
+        Compute intermediate results at the end of every iteration
     client : :obj:`dask.distributed.client.Client`, optional
         Dask client. If provided when ``compute=None`` each iteration
         is persisted. This is the preferred method to avoid repeating
