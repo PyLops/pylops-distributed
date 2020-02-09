@@ -193,9 +193,8 @@ class Marchenko():
         if G0 is None:
             if self.wav is not None and nfft is not None:
                 G0 = (directwave(self.wav, trav, self.nt,
-                                 self.dt, nfft=nfft)).T
-                                 #dist=dist,
-                                 #kind='2d' if dist is None else '3d')).T
+                                 self.dt, nfft=nfft, dist=dist,
+                                 kind='2d' if dist is None else '3d')).T
             else:
                 logging.error('wav and/or nfft are not provided. '
                               'Provide either G0 or wav and nfft...')

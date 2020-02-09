@@ -17,7 +17,7 @@ np.random.seed(10)
 
 @pytest.mark.parametrize("par", [(par1), (par2)])
 def test_Diagonal_1dsignal(par):
-    """Dot-test and comparision with Pylops for Diagonal operator for 1d signal
+    """Dot-test and comparison with Pylops for Diagonal operator for 1d signal
     """
     for ddim in (par['nx'], par['nt']):
         d = da.arange(ddim, chunks=ddim//2) + 1. +\

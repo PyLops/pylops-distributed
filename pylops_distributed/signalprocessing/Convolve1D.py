@@ -10,9 +10,12 @@ class Convolve1D(LinearOperator):
 
     Apply one-dimensional convolution with a compact filter to model (and data)
     along a specific direction of a multi-dimensional array depending on the
-    choice of ``dir``. Note that if a multi-dimensional array is provided
-    the array cannot be chuncked along the direction ``dir`` where convolution
-    is performed
+    choice of ``dir``.
+
+    Note that if a multi-dimensional array is provided the array can also
+    be chuncked along the direction ``dir`` where convolution is performed.
+    In this case, ``dask`` handles the communication of borders between
+    neighboring blocks.
 
     Parameters
     ----------
@@ -27,9 +30,6 @@ class Convolve1D(LinearOperator):
         (``None`` if only one dimension is available)
     dir : :obj:`int`, optional
         Direction along which convolution is applied
-    method : :obj:`str`, optional
-        Method used to calculate the convolution (``direct`` or ``fft``).
-        Note that ``fft`` approach is always used if ``dims=None``.
     compute : :obj:`tuple`, optional
         Compute the outcome of forward and adjoint or simply define the graph
         and return a :obj:`dask.array.array`
@@ -62,7 +62,7 @@ class Convolve1D(LinearOperator):
     details.
 
     """
-    def __init__(self, N, h, offset=0, dims=None, dir=0, method='direct',
+    def __init__(self, N, h, offset=0, dims=None, dir=0,
                  compute=(False, False), chunks=(None, None),
                  todask=(False, False), dtype='float64'):
         if offset > len(h) - 1:
@@ -70,7 +70,7 @@ class Convolve1D(LinearOperator):
         self.h = h
         self.hstar = np.flip(self.h)
         self.nh = len(h)
-        self.offset = 2*(self.nh // 2 - int(offset))
+        self.offset = 2 * (self.nh // 2 - int(offset))
         if self.nh % 2 == 0:
             self.offset -= 1
         if self.offset != 0:
@@ -95,7 +95,6 @@ class Convolve1D(LinearOperator):
             else:
                 self.dims = np.array(dims)
                 self.reshape = True
-        self.method = method
         self.shape = (np.prod(self.dims), np.prod(self.dims))
         self.dtype = np.dtype(dtype)
         self.compute = compute
@@ -106,29 +105,52 @@ class Convolve1D(LinearOperator):
 
     def _matvec(self, x):
         if not self.reshape:
-            # as x is assumed to be small, we simply bring it back to numpy,
-            # perform convolution and save it back again to dask. This is a
-            # temporary solution since dask has no distributed convolution
-            y = da.from_array(convolve(x.squeeze().compute(), self.h,
-                                       mode='same', method=self.method))
+            y = da.map_overlap(x, lambda x: np.convolve(x, self.h,
+                                                        mode='same'),
+                               depth=len(self.h) // 2, boundary=0, trim=True)
         else:
             x = da.reshape(x, self.dims)
             if self.chunks[0] is not None:
                 x = x.rechunk(self.chunks[0])
-            y = da.map_blocks(fftconvolve, x, self.h, mode='same',
-                              axes=self.dir)
+            if x.numblocks[self.dir] == 1:
+                # apply the convolution for each block indipendently
+                y = da.map_blocks(fftconvolve, x, self.h, mode='same',
+                                  axes=self.dir)
+            else:
+                # communicate borders between chunks and perform convolution
+                # (trimming away the edges at the end)
+                depth = [1] * len(self.dims)
+                depth[self.dir] = self.h.shape[self.dir] // 2
+                y = da.map_overlap(x, lambda x: fftconvolve(x, self.h,
+                                                            mode='same',
+                                                            axes=self.dir),
+                                   depth=tuple(depth), boundary=0,
+                                   trim=True)
             y = y.ravel()
         return y
 
     def _rmatvec(self, x):
         if not self.reshape:
-            y = da.from_array(convolve(x.squeeze().compute(), self.hstar,
-                                       mode='same', method=self.method))
+            y = da.map_overlap(x, lambda x: np.convolve(x, self.hstar,
+                                                        mode='same'),
+                               depth=len(self.h) // 2, boundary=0, trim=True)
         else:
             x = da.reshape(x, self.dims)
             if self.chunks[1] is not None:
                 x = x.rechunk(self.chunks[1])
-            y = da.map_blocks(fftconvolve,
-                              x, self.hstar, mode='same', axes=self.dir)
-            y = y.ravel()
+            if x.numblocks[self.dir] == 1:
+                # apply the convolution for each block indipendently
+                y = da.map_blocks(fftconvolve, x, self.hstar,
+                                  mode='same', axes=self.dir)
+            else:
+                # communicate borders between chunks and perform convolution
+                # (trimming away the edges at the end)
+                depth = [1] * len(self.dims)
+                depth[self.dir] = self.hstar.shape[self.dir] // 2
+                y = da.map_overlap(x, lambda x: fftconvolve(x, self.hstar,
+                                                            mode='same',
+                                                            axes=self.dir),
+                                   depth=tuple(depth), boundary=0,
+                                   trim=True)
+        y = y.ravel()
         return y

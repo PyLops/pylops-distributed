@@ -10,3 +10,9 @@ from .VStack import VStack
 from .HStack import HStack
 from .BlockDiag import BlockDiag
 from .Block import Block
+
+from .FirstDerivative import FirstDerivative
+from .SecondDerivative import SecondDerivative
+from .Laplacian import Laplacian
+
+from .Smoothing1D import Smoothing1D
