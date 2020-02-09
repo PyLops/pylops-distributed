@@ -1,6 +1,10 @@
+import copy
 import numpy as np
 import dask.array as da
+
+from dask.array.linalg import solve, lstsq
 from pylops import LinearOperator as pLinearOperator
+from pylops_distributed.optimization.cg import cgls
 
 
 class LinearOperator(pLinearOperator):
@@ -17,11 +21,12 @@ class LinearOperator(pLinearOperator):
     overwritten here to simply call their private methods
     ``_matvec`` and ``_rmatvec`` without any prior check on the input vectors.
 
-    .. note:: End users of PyLops should not use this class directly but simply
-      use operators that are already implemented. This class is meant for
-      developers and it has to be used as the parent class of any new operator
-      developed within PyLops-distibuted. Find more details regarding
-      implementation of new operators at :ref:`addingoperator`.
+    .. note:: End users of PyLops-distributed should not use this class
+      directly but simply use operators that are already implemented.
+      This class is meant for developers and it has to be used as the
+      parent class of any new operator developed within PyLops-distibuted.
+      Find more details regarding implementation of new operators at
+      https://pylops.readthedocs.io/en/latest/adding.html.
 
     Parameters
     ----------
@@ -159,9 +164,28 @@ class LinearOperator(pLinearOperator):
 
     def __rmul__(self, x):
         if np.isscalar(x):
-            return _ScaledLinearOperator(self, x)
+            return aslinearoperator(_ScaledLinearOperator(self, x))
         else:
             return NotImplemented
+
+    def __pow__(self, p):
+        if np.isscalar(p):
+            return aslinearoperator(_PowerLinearOperator(self, p))
+        else:
+            return NotImplemented
+
+    def __add__(self, x):
+        if isinstance(x, LinearOperator):
+            return aslinearoperator(_SumLinearOperator(self, x))
+        else:
+            return NotImplemented
+
+    def __neg__(self):
+        return aslinearoperator(_ScaledLinearOperator(self, -1))
+
+    def __sub__(self, x):
+        return self.__add__(-x)
+
 
     def adjoint(self):
         """Hermitian adjoint.
@@ -180,6 +204,38 @@ class LinearOperator(pLinearOperator):
         return _CustomLinearOperator(shape, matvec=self.rmatvec,
                                      rmatvec=self.matvec,
                                      dtype=self.dtype)
+
+    def div1(self, y, niter=100):
+        r"""Solve the linear problem :math:`\mathbf{y}=\mathbf{A}\mathbf{x}`.
+
+        Overloading of operator ``/`` to improve expressivity of
+        `Pylops-distributed` when solving inverse problems.
+
+        Parameters
+        ----------
+        y : :obj:`dask.array`
+            Data
+        niter : :obj:`int`, optional
+            Number of iterations (to be used only when ``explicit=False``)
+
+        Returns
+        -------
+        xest : :obj:`dask.array`
+            Estimated model
+
+        """
+        xest = self.__truediv__(y, niter=niter)
+        return xest
+
+    def __truediv__(self, y, niter=100):
+        if self.explicit is True:
+            if self.A.shape[0] == self.A.shape[1]:
+                xest = solve(self.A, y)
+            else:
+                xest = lstsq(self.A, y)[0]
+        else:
+            xest = cgls(self, y, niter=niter)[0]
+        return xest
 
     def conj(self):
         """Complex conjugate operator
@@ -244,12 +300,23 @@ class _SumLinearOperator(LinearOperator):
                              % (A, B))
         if A.compute[0] != B.compute[0] or A.compute[1] != B.compute[1]:
             raise ValueError('compute must be the same for A and B')
+        if A.todask[0] != B.todask[0] or A.todask[1] != B.todask[1]:
+            raise ValueError('todask must be the same for A and B')
         self.args = (A, B)
         super(_SumLinearOperator, self).__init__(shape=A.shape,
                                                  dtype=A.dtype, Op=None,
-                                                 explicit=A.explicit,
+                                                 explicit=A.explicit and
+                                                          B.explicit,
                                                  compute=A.compute,
                                                  todask=A.todask)
+        # Force compute and todask not to be applied to individual operators
+        Ac = copy.deepcopy(A)
+        Bc = copy.deepcopy(B)
+        Ac.compute = (False, False)
+        Bc.compute = (False, False)
+        Ac.todask = (False, False)
+        Bc.todask = (False, False)
+        self.args = (Ac, Bc)
 
     def _matvec(self, x):
         return self.args[0].matvec(x) + self.args[1].matvec(x)
@@ -276,12 +343,20 @@ class _ProductLinearOperator(LinearOperator):
         super(_ProductLinearOperator, self).__init__(shape=(A.shape[0],
                                                             B.shape[1]),
                                                      dtype=A.dtype, Op=None,
-                                                     explicit=A.explicit,
+                                                     explicit=A.explicit and
+                                                              B.explicit,
                                                      compute=(B.compute[0],
                                                               A.compute[1]),
                                                      todask=(B.todask[0],
                                                              A.todask[1]))
-        self.args = (A, B)
+        # Force compute and todask not to be applied to individual operators
+        Ac = copy.deepcopy(A)
+        Bc = copy.deepcopy(B)
+        Ac.compute = (False, False)
+        Bc.compute = (False, False)
+        Ac.todask = (False, False)
+        Bc.todask = (False, False)
+        self.args = (Ac, Bc)
 
     def _matvec(self, x):
         return self.args[0].matvec(self.args[1].matvec(x))
@@ -308,7 +383,11 @@ class _ScaledLinearOperator(LinearOperator):
                                                     explicit=A.explicit,
                                                     compute=A.compute,
                                                     todask=A.todask)
-        self.args = (A, alpha)
+        # Force compute and todask not to be applied to individual operators
+        Ac = copy.deepcopy(A)
+        Ac.compute = (False, False)
+        Ac.todask = (False, False)
+        self.args = (Ac, alpha)
 
     def _matvec(self, x):
         return self.args[1] * self.args[0].matvec(x)
@@ -387,3 +466,27 @@ class _ConjLinearOperator(LinearOperator):
     def _adjoint(self):
         return _ConjLinearOperator(self.oOp.H)
 
+
+def aslinearoperator(Op):
+    """Return Op as a LinearOperator.
+
+    Converts any operator into a LinearOperator. This can be used when `Op`
+    is a private operator to ensure that the return operator has all properties
+    and methods of the parent class.
+
+    Parameters
+    ----------
+    Op : :obj:`pylops_distributed.LinearOperator` or any other Operator
+        Operator of any type
+
+    Returns
+    -------
+    Op : :obj:`pylops_distributed.LinearOperator`
+        Operator of type :obj:`pylops.LinearOperator`
+
+    """
+    if isinstance(Op, LinearOperator):
+        return Op
+    else:
+        return LinearOperator(Op.shape, Op.dtype, Op, explicit=Op.explicit,
+                              compute=Op.compute, todask=Op.todask)
