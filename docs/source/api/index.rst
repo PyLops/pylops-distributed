@@ -27,6 +27,18 @@ Basic operators
    BlockDiag
 
 
+Smoothing and derivatives
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+   :toctree: generated/
+
+   Smoothing1D
+   FirstDerivative
+   SecondDerivative
+   Laplacian
+
+
 Signal processing
 ~~~~~~~~~~~~~~~~~
 

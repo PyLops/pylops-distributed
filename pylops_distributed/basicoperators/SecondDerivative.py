@@ -4,10 +4,10 @@ from pylops_distributed import LinearOperator
 from pylops_distributed.signalprocessing import Convolve1D
 
 
-class FirstDerivative(LinearOperator):
-    r"""First derivative.
+class SecondDerivative(LinearOperator):
+    r"""Second derivative.
 
-    Apply second-order centered first derivative.
+    Apply second-order centered second derivative.
 
     Parameters
     ----------
@@ -43,14 +43,14 @@ class FirstDerivative(LinearOperator):
 
     Notes
     -----
-    Refer to :class:`pylops.basicoperators.FirstDerivative` for implementation
+    Refer to :class:`pylops.basicoperators.SecondDerivative` for implementation
     details.
 
     """
     def __init__(self, N, dims=None, dir=0, sampling=1.,
                  compute=(False, False), chunks=(None, None),
                  todask=(False, False), dtype='float64'):
-        h = np.array([0.5, 0, -0.5], dtype=dtype) / sampling
+        h = np.array([1., -2, 1.], dtype=dtype) / sampling**2
         self.compute = compute
         self.chunks = chunks
         self.todask = todask

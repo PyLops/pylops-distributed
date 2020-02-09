@@ -10,6 +10,10 @@ from .basicoperators import VStack
 from .basicoperators import HStack
 from .basicoperators import Block
 from .basicoperators import BlockDiag
+from .basicoperators import FirstDerivative
+from .basicoperators import SecondDerivative
+from .basicoperators import Laplacian
+from .basicoperators import Smoothing1D
 
 from .optimization.cg import cg, cgls
 

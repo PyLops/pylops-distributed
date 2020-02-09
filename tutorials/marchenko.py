@@ -57,6 +57,7 @@ z, x = inputdata['z'], inputdata['x']
 
 # Reflection response in frequency domain (R[f, s, r])
 R_fft = da.from_zarr(inputzarr)
+print('R_fft:', R_fft)
 
 # Subsurface fields
 Gsub = inputdata['Gsub']
