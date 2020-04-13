@@ -33,7 +33,7 @@ par4e = {'nz': 11, "ny": 51, 'nx': 61,
 def test_FirstDerivative(par):
     """Dot-test and comparison with Pylops for FirstDerivative operator
     """
-    np.random.seed(10)
+    np.random.seed(0)
 
     # 1d
     dD1op = dFirstDerivative(par['nx'], sampling=par['dx'],
@@ -116,14 +116,14 @@ def test_FirstDerivative(par):
                                  par['nx'] // 2 + 1))
     dy = dD1op * x.ravel()
     y = D1op * x.compute().ravel()
-    assert_array_almost_equal(y.reshape(par['nz'], par['ny'], par['nx'])[1:-1, 1:-1],
-                              dy.reshape(par['nz'], par['ny'], par['nx'])[1:-1, 1:-1],
+    assert_array_almost_equal(y.reshape(par['nz'], par['ny'], par['nx'])[1:-1, :, :],
+                              dy.reshape(par['nz'], par['ny'], par['nx'])[1:-1, :, :],
                               decimal=1)
 
     # 3d - derivative on 2nd direction
     dD1op = dFirstDerivative(par['nz'] * par['ny'] * par['nx'],
                              dims=(par['nz'], par['ny'], par['nx']),
-                             dir=1, sampling=par['dz'], compute=(True, True),
+                             dir=1, sampling=par['dy'], compute=(True, True),
                              dtype='float32')
     D1op = FirstDerivative(par['nz'] * par['ny'] * par['nx'],
                            dims=(par['nz'], par['ny'], par['nx']),
@@ -138,21 +138,49 @@ def test_FirstDerivative(par):
                            (par['ny'] // 2 + 1) *
                            (par['nx'] // 2 + 1)), tol=1e-3)
 
-    x = np.outer((par['dz'] * np.arange(par['nz'])) ** 2,
-                 np.ones((par['ny'], par['nx']))).reshape(par['nz'],
-                                                          par['ny'],
-                                                          par['nx'])
+    x = np.outer(np.outer(np.ones(par['nz']),
+                          par['dy'] * np.arange(par['ny']) ** 2),
+                 np.ones(par['nx'])).reshape(par['nz'], par['ny'], par['nx'])
     x = da.from_array(x, chunks=(par['nz'] // 2 + 1,
                                  par['ny'] // 2 + 1,
                                  par['nx'] // 2 + 1))
     dy = dD1op * x.ravel()
     y = D1op * x.compute().ravel()
-    assert_array_almost_equal(y.reshape(par['nz'], par['ny'], par['nx'])[1:-1, 1:-1],
-                              dy.reshape(par['nz'], par['ny'], par['nx'])[1:-1, 1:-1],
+    assert_array_almost_equal(y.reshape(par['nz'], par['ny'], par['nx'])[:, 1:-1, :],
+                              dy.reshape(par['nz'], par['ny'], par['nx'])[:, 1:-1, :],
                               decimal=1)
 
     # 3d - derivative on 3rd direction
-    # to do...
+    dD1op = dFirstDerivative(par['nz'] * par['ny'] * par['nx'],
+                             dims=(par['nz'], par['ny'], par['nx']),
+                             dir=2, sampling=par['dx'], compute=(True, True),
+                             dtype='float32')
+    D1op = FirstDerivative(par['nz'] * par['ny'] * par['nx'],
+                           dims=(par['nz'], par['ny'], par['nx']),
+                           dir=2, sampling=par['dx'], edge=False,
+                           dtype='float32')
+    assert dottest(dD1op, par['nz'] * par['ny'] * par['nx'],
+                   par['nz'] * par['ny'] * par['nx'],
+                   chunks=((par['nz'] // 2 + 1) *
+                           (par['ny'] // 2 + 1) *
+                           (par['nx'] // 2 + 1),
+                           (par['nz'] // 2 + 1) *
+                           (par['ny'] // 2 + 1) *
+                           (par['nx'] // 2 + 1)), tol=1e-3)
+
+    x = np.outer(np.ones((par['nz'], par['ny'])),
+                 (par['dx'] * np.arange(par['nx'])) ** 2).reshape(par['nz'],
+                                                                  par['ny'],
+                                                                  par['nx'])
+    x = da.from_array(x, chunks=(par['nz'] // 2 + 1,
+                                 par['ny'] // 2 + 1,
+                                 par['nx'] // 2 + 1))
+    dy = dD1op * x.ravel()
+    y = D1op * x.compute().ravel()
+    assert_array_almost_equal(
+        y.reshape(par['nz'], par['ny'], par['nx'])[:, :, 1:-1],
+        dy.reshape(par['nz'], par['ny'], par['nx'])[:, :, 1:-1],
+        decimal=1)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4),
@@ -160,7 +188,7 @@ def test_FirstDerivative(par):
 def test_SecondDerivative(par):
     """Dot-test and comparison with Pylops for SecondDerivative operator
     """
-    np.random.seed(10)
+    np.random.seed(0)
 
     x = par['dx'] * np.arange(par['nx'])
     y = par['dy'] * np.arange(par['ny'])
@@ -181,7 +209,6 @@ def test_SecondDerivative(par):
     dy = dD2op * x
     y = D2op * x.compute()
     assert_array_almost_equal(y[1:-1], dy[1:-1], decimal=1)
-
 
     # 2d - derivative on 1st direction
     dD2op = dSecondDerivative(par['ny'] * par['nx'],
@@ -250,41 +277,6 @@ def test_SecondDerivative(par):
                                      par['nx'] // 2 + 1))
     dy = dD2op * xxx.ravel()
     y = D2op * xxx.compute().ravel()
-    assert_array_almost_equal(y.reshape(par['nz'], par['ny'], par['nx'])[1:-1, 1:-1, 1:-1],
-                              dy.reshape(par['nz'], par['ny'], par['nx'])[1:-1, 1:-1, 1:-1],
+    assert_array_almost_equal(y.reshape(par['nz'], par['ny'], par['nx'])[1:-1],
+                              dy.reshape(par['nz'], par['ny'], par['nx'])[1:-1],
                               decimal=1)
-    """
-    # 3d - derivative on 2nd direction
-    D2op = SecondDerivative(par['nz'] * par['ny'] * par['nx'],
-                            dims=(par['ny'], par['nx'], par['nz']),
-                            dir=1, sampling=par['dx'],
-                            edge=par['edge'], dtype='float32')
-
-    assert dottest(D2op, par['nz'] * par['ny'] * par['nx'],
-                   par['nz'] * par['ny'] * par['nx'], tol=1e-3)
-
-    # polynomial f(x,y,z) = x^3, f_{xx}(x,y,z) = 6x
-    f = xxx**3
-    dfana = 6*xxx
-    df = D2op * f.flatten()
-    df = df.reshape(par['ny'], par['nx'], par['nz'])
-
-    assert_array_almost_equal(df[:,1:-1,:], dfana[:,1:-1,:], decimal=1)
-
-    # 3d - derivative on 3rd direction
-    D2op = SecondDerivative(par['nz'] * par['ny'] * par['nx'],
-                            dims=(par['ny'], par['nx'], par['nz']),
-                            dir=2, sampling=par['dz'],
-                            edge=par['edge'], dtype='float32')
-
-    assert dottest(D2op, par['nz'] * par['ny'] * par['nx'],
-                   par['ny'] * par['nx'] * par['nz'], tol=1e-3)
-
-    # polynomial f(x,y,z) = z^3, f_{zz}(x,y,z) = 6z
-    f = zzz**3
-    dfana = 6*zzz
-    df = D2op * f.flatten()
-    df = df.reshape(par['ny'], par['nx'], par['nz'])
-
-    assert_array_almost_equal(df[:,:,1:-1], dfana[:,:,1:-1], decimal=1)
-    """
