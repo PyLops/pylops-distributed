@@ -8,8 +8,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
 
 
 def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
-        saveGt=True, conj=False, compute=(False, False),
-        todask=(False, False)):
+        saveGt=True, conj=False, prescaled=False,
+        compute=(False, False), todask=(False, False)):
     r"""Multi-dimensional convolution.
 
     Apply multi-dimensional convolution between two datasets.
@@ -43,6 +43,11 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
         faster but double the amount of required memory
     conj : :obj:`str`, optional
         Perform Fredholm integral computation with complex conjugate of ``G``
+    prescaled : :obj:`bool`, optional
+        Apply scaling to kernel (``False``) or not (``False``) when performing
+        spatial and temporal summations. In case ``prescaled=True``, the
+        kernel is assumed to have been pre-scaled when passed to the MDC
+        routine.
     compute : :obj:`tuple`, optional
         Compute the outcome of forward and adjoint or simply define the graph
         and return a :obj:`dask.array`
@@ -57,7 +62,7 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
 
     """
     return _MDC(G, nt, nv, dt=dt, dr=dr, twosided=twosided,
-                transpose=False, saveGt=saveGt, conj=conj,
+                transpose=False, saveGt=saveGt, conj=conj, prescaled=prescaled,
                 _Identity=Identity, _Transpose=Transpose,
                 _FFT=FFT, _Fredholm1=Fredholm1,
                 args_Fredholm1={'chunks': ((G.chunks[0], G.shape[2], nv),
