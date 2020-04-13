@@ -74,5 +74,4 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
                 args_FFT1={'chunks': ((nt, G.shape[1], nv),
                                       (nt, G.shape[1], nv)),
                            'todask': (todask[1], False),
-                           'compute':(compute[0], False)})
-
+                           'compute':(False, compute[0])})

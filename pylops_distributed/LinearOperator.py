@@ -201,8 +201,12 @@ class LinearOperator(pLinearOperator):
     def _adjoint(self):
         """Default implementation of _adjoint; defers to rmatvec."""
         shape = (self.shape[1], self.shape[0])
-        return _CustomLinearOperator(shape, matvec=self.rmatvec,
-                                     rmatvec=self.matvec,
+        return _CustomLinearOperator(shape, matvec=self._rmatvec,
+                                     rmatvec=self._matvec,
+                                     compute=(self.compute[1],
+                                              self.compute[0]),
+                                     todask=(self.todask[1],
+                                              self.todask[0]),
                                      dtype=self.dtype)
 
     def div1(self, y, niter=100):
@@ -286,7 +290,7 @@ class _CustomLinearOperator(LinearOperator):
                                      matvec=self.__rmatvec_impl,
                                      rmatvec=self.__matvec_impl,
                                      dtype=self.dtype,
-                                     compute=self.compute,
+                                     compute=(self.compute[1], self.compute[0]),
                                      todask=(self.todask[1], self.todask[0]))
 
 
@@ -319,13 +323,13 @@ class _SumLinearOperator(LinearOperator):
         self.args = (Ac, Bc)
 
     def _matvec(self, x):
-        return self.args[0].matvec(x) + self.args[1].matvec(x)
+        return self.args[0]._matvec(x) + self.args[1]._matvec(x)
 
     def _rmatvec(self, x):
-        return self.args[0].rmatvec(x) + self.args[1].rmatvec(x)
+        return self.args[0]._rmatvec(x) + self.args[1]._rmatvec(x)
 
     def _matmat(self, x):
-        return self.args[0].matmat(x) + self.args[1].matmat(x)
+        return self.args[0]._matmat(x) + self.args[1]._matmat(x)
 
     def _adjoint(self):
         A, B = self.args
@@ -345,8 +349,8 @@ class _ProductLinearOperator(LinearOperator):
                                                      dtype=A.dtype, Op=None,
                                                      explicit=A.explicit and
                                                               B.explicit,
-                                                     compute=(B.compute[0],
-                                                              A.compute[1]),
+                                                     compute=(A.compute[0],
+                                                              B.compute[1]),
                                                      todask=(B.todask[0],
                                                              A.todask[1]))
         # Force compute and todask not to be applied to individual operators
@@ -359,13 +363,13 @@ class _ProductLinearOperator(LinearOperator):
         self.args = (Ac, Bc)
 
     def _matvec(self, x):
-        return self.args[0].matvec(self.args[1].matvec(x))
+        return self.args[0]._matvec(self.args[1]._matvec(x))
 
     def _rmatvec(self, x):
-        return self.args[1].rmatvec(self.args[0].rmatvec(x))
+        return self.args[1]._rmatvec(self.args[0]._rmatvec(x))
 
     def _matmat(self, x):
-        return self.args[0].matmat(self.args[1].matmat(x))
+        return self.args[0]._matmat(self.args[1]._matmat(x))
 
     def _adjoint(self):
         A, B = self.args
@@ -390,13 +394,13 @@ class _ScaledLinearOperator(LinearOperator):
         self.args = (Ac, alpha)
 
     def _matvec(self, x):
-        return self.args[1] * self.args[0].matvec(x)
+        return self.args[1] * self.args[0]._matvec(x)
 
     def _rmatvec(self, x):
-        return np.conj(self.args[1]) * self.args[0].rmatvec(x)
+        return np.conj(self.args[1]) * self.args[0]._rmatvec(x)
 
     def _matmat(self, x):
-        return self.args[1] * self.args[0].matmat(x)
+        return self.args[1] * self.args[0]._matmat(x)
 
     def _adjoint(self):
         A, alpha = self.args
@@ -428,13 +432,13 @@ class _PowerLinearOperator(LinearOperator):
         return res
 
     def _matvec(self, x):
-        return self._power(self.args[0].matvec, x, self.compute[0])
+        return self._power(self.args[0]._matvec, x, self.compute[0])
 
     def _rmatvec(self, x):
-        return self._power(self.args[0].rmatvec, x, self.compute[1])
+        return self._power(self.args[0]._rmatvec, x, self.compute[1])
 
     def _matmat(self, x):
-        return self._power(self.args[0].matmat, x, self.compute[0])
+        return self._power(self.args[0]._matmat, x, self.compute[0])
 
     def _adjoint(self):
         A, p = self.args
