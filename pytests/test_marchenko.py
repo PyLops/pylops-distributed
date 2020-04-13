@@ -74,21 +74,30 @@ Rtwosided_fft = Rtwosided_fft[..., :nfmax]
 # Load distributed Rs in frequency domain
 dRtwosided_fft = da.from_zarr(inputzarr)
 
+par1 = {'saveRt': True, 'prescaled':False}
+par2 = {'saveRt': False, 'prescaled':False}
+par3 = {'saveRt': True, 'prescaled':True}
+par4 = {'saveRt': False, 'prescaled':True}
 
-par1 = {'saveRt': True}  # square real
-par2 = {'saveRt': False}  # overdetermined real
 
-
-@pytest.mark.parametrize("par", [(par1), (par2)])
+@pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4)])
 def test_Marchenko(par):
     """Dot-test and comparison with pylops for Marchenko.apply_onepoint
     """
-    dMarchenkoWM = dMarchenko(dRtwosided_fft, nt=nt, dt=dt, dr=dr,
-                              wav=wav, toff=toff, nsmooth=nsmooth,
-                              saveRt=par['saveRt'])
+    if par['prescaled']:
+        dRtwosided_fft_sc = np.sqrt(2 * nt - 1) * dt * dr * dRtwosided_fft
+        Rtwosided_fft_sc = np.sqrt(2 * nt - 1) * dt * dr * Rtwosided_fft
+    else:
+        dRtwosided_fft_sc = dRtwosided_fft
+        Rtwosided_fft_sc = Rtwosided_fft
 
-    MarchenkoWM = Marchenko(Rtwosided_fft, nt=nt, dt=dt, dr=dr,
-                            wav=wav, toff=toff, nsmooth=nsmooth)
+    dMarchenkoWM = dMarchenko(dRtwosided_fft_sc, nt=nt, dt=dt, dr=dr,
+                              wav=wav, toff=toff, nsmooth=nsmooth,
+                              saveRt=par['saveRt'], prescaled=par['prescaled'])
+
+    MarchenkoWM = Marchenko(Rtwosided_fft_sc, nt=nt, dt=dt, dr=dr,
+                            wav=wav, toff=toff, nsmooth=nsmooth,
+                            prescaled=par['prescaled'])
 
     _, _, dp0_minus, dg_inv_minus, dg_inv_plus = \
         dMarchenkoWM.apply_onepoint(trav, nfft=2 ** 11, rtm=True, greens=True,
@@ -107,16 +116,24 @@ def test_Marchenko(par):
            np.linalg.norm(gsub_norm) < 1e-1
 
 
-@pytest.mark.parametrize("par", [(par1), (par2)])
-def test_Marchenko__multi(par):
+@pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4)])
+def test_Marchenko_multi(par):
     """Dot-test and comparison with pylops for Marchenko.apply_multiplepoints
     """
-    dMarchenkoWM = dMarchenko(dRtwosided_fft, nt=nt, dt=dt, dr=dr,
-                              wav=wav, toff=toff, nsmooth=nsmooth,
-                              saveRt=par['saveRt'])
+    if par['prescaled']:
+        dRtwosided_fft_sc = np.sqrt(2 * nt - 1) * dt * dr * dRtwosided_fft
+        Rtwosided_fft_sc = np.sqrt(2 * nt - 1) * dt * dr * Rtwosided_fft
+    else:
+        dRtwosided_fft_sc = dRtwosided_fft
+        Rtwosided_fft_sc = Rtwosided_fft
 
-    MarchenkoWM = Marchenko(Rtwosided_fft, nt=nt, dt=dt, dr=dr,
-                            wav=wav, toff=toff, nsmooth=nsmooth)
+    dMarchenkoWM = dMarchenko(dRtwosided_fft_sc, nt=nt, dt=dt, dr=dr,
+                              wav=wav, toff=toff, nsmooth=nsmooth,
+                              saveRt=par['saveRt'], prescaled=par['prescaled'])
+
+    MarchenkoWM = Marchenko(Rtwosided_fft_sc, nt=nt, dt=dt, dr=dr,
+                            wav=wav, toff=toff, nsmooth=nsmooth,
+                            prescaled=par['prescaled'])
 
     _, _, dp0_minus, dg_inv_minus, dg_inv_plus = \
         dMarchenkoWM.apply_multiplepoints(trav_multi, nfft=2 ** 11, rtm=True,
