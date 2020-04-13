@@ -60,6 +60,48 @@ par8['twosided'] = True
 par8['nfmax'] = int(np.ceil((PAR['nt']+1.)/2))-30
 
 
+@pytest.mark.parametrize("par", [(par1)])
+def test_MDC_compute(par):
+    """Ensure that forward and adjoint of MDC return numpy array when
+    compute=True
+    """
+    par['nt2'] = par['nt']
+    v = 1500
+    it0_m = 25
+    t0_m = it0_m * par['dt']
+    theta_m = 0
+    amp_m = 1.
+
+    it0_G = np.array([25, 50, 75])
+    t0_G = it0_G * par['dt']
+    theta_G = (0, 0, 0)
+    phi_G = (0, 0, 0)
+    amp_G = (1., 0.6, 2.)
+
+    # Create axis
+    t, _, x, y = makeaxis(par)
+
+    # Create wavelet
+    wav = ricker(t[:41], f0=par['f0'])[0]
+
+    # Generate model
+    _, mwav = linear2d(x, t, v, t0_m, theta_m, amp_m, wav)
+    # Generate operator
+    _, Gwav = linear3d(x, y, t, v, t0_G, theta_G, phi_G, amp_G, wav)
+
+    # Define MDC linear operator
+    Gwav_fft = np.fft.fft(Gwav, par['nt2'], axis=-1)
+    Gwav_fft = Gwav_fft[..., :par['nfmax']]
+
+    dMDCop = dMDC(da.from_array(Gwav_fft.transpose(2, 0, 1)),
+                  nt=par['nt2'], nv=1, dt=par['dt'], dr=par['dx'],
+                  twosided=par['twosided'], todask=(True, True),
+                  compute=(True, True))
+
+    assert isinstance(dMDCop.matvec(np.ones(dMDCop.shape[1])), np.ndarray)
+    assert isinstance(dMDCop.rmatvec(np.ones(dMDCop.shape[0])), np.ndarray)
+
+
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4),
                                  (par5), (par6), (par7), (par8)])
 def test_MDC_1virtualsource(par):
