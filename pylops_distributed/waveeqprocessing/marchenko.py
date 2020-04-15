@@ -160,13 +160,14 @@ class Marchenko():
         # Create window
         trav_off = trav - self.toff
         trav_off = np.round(trav_off / self.dt).astype(np.int)
-        w = np.zeros((self.nr, self.nt))
+        w = np.zeros((self.nr, self.nt), dtype=self.dtype)
         for ir in range(self.nr):
             w[ir, :trav_off[ir]] = 1
         w = np.hstack((np.fliplr(w), w[:, 1:]))
         if self.nsmooth > 0:
             smooth = np.ones(self.nsmooth) / self.nsmooth
             w = filtfilt(smooth, 1, w)
+        w = w.astype(self.dtype)
 
         # Create operators
         Rop = MDC(self.Rtwosided_fft, self.nt2, nv=1, dt=self.dt, dr=self.dr,
@@ -202,16 +203,19 @@ class Marchenko():
         if G0 is None:
             if self.wav is not None and nfft is not None:
                 G0 = (directwave(self.wav, trav, self.nt,
-                                 self.dt, nfft=nfft, dist=dist,
+                                 self.dt, nfft=nfft,
+                                 derivative=True, dist=dist,
                                  kind='2d' if dist is None else '3d')).T
             else:
                 logging.error('wav and/or nfft are not provided. '
                               'Provide either G0 or wav and nfft...')
                 raise ValueError('wav and/or nfft are not provided. '
                                  'Provide either G0 or wav and nfft...')
+            G0 = G0.astype(self.dtype)
 
         fd_plus = np.concatenate((np.fliplr(G0).T,
-                                  np.zeros((self.nt - 1, self.nr))))
+                                  np.zeros((self.nt - 1, self.nr),
+                                           dtype=self.dtype)))
         fd_plus = da.from_array(fd_plus)
 
         # Run standard redatuming as benchmark
@@ -222,12 +226,14 @@ class Marchenko():
         # Create data and inverse focusing functions
         d = Wop * Rop * fd_plus.flatten()
         d = da.concatenate((d.reshape(self.nt2, self.ns),
-                            da.zeros((self.nt2, self.ns))))
+                            da.zeros((self.nt2, self.ns),
+                            dtype = self.dtype)))
 
         # Invert for focusing functions
         f1_inv = cgls(Mop, d.flatten(), **kwargs_cgls)[0]
         f1_inv = f1_inv.reshape(2 * self.nt2, self.nr)
-        f1_inv_tot = f1_inv + da.concatenate((da.zeros((self.nt2, self.nr)),
+        f1_inv_tot = f1_inv + da.concatenate((da.zeros((self.nt2, self.nr),
+                                                       dtype=self.dtype),
                                               fd_plus))
         # Create Green's functions
         if greens:
@@ -325,7 +331,7 @@ class Marchenko():
         trav_off = trav - self.toff
         trav_off = np.round(trav_off / self.dt).astype(np.int)
 
-        w = np.zeros((self.nr, nvs, self.nt))
+        w = np.zeros((self.nr, nvs, self.nt), dtype=self.dtype)
         for ir in range(self.nr):
             for ivs in range(nvs):
                 w[ir, ivs, :trav_off[ir, ivs]] = 1
@@ -333,6 +339,7 @@ class Marchenko():
         if self.nsmooth > 0:
             smooth = np.ones(self.nsmooth) / self.nsmooth
             w = filtfilt(smooth, 1, w)
+        w = w.astype(self.dtype)
 
         # Create operators
         Rop = MDC(self.Rtwosided_fft, self.nt2, nv=nvs, dt=self.dt,
@@ -367,20 +374,22 @@ class Marchenko():
         # Create input focusing function
         if G0 is None:
             if self.wav is not None and nfft is not None:
-                G0 = np.zeros((self.nr, nvs, self.nt))
+                G0 = np.zeros((self.nr, nvs, self.nt), dtype=self.dtype)
                 for ivs in range(nvs):
                     G0[:, ivs] = (directwave(self.wav, trav[:, ivs],
-                                             self.nt, self.dt, nfft=nfft)).T
-                                             # dist=dist,
-                                             # kind='2d' if dist is None else '3d')).T
+                                             self.nt, self.dt, nfft=nfft,
+                                             derivative=True,  dist=dist,
+                                             kind='2d' if dist is None else '3d')).T
             else:
                 logging.error('wav and/or nfft are not provided. '
                               'Provide either G0 or wav and nfft...')
                 raise ValueError('wav and/or nfft are not provided. '
                                  'Provide either G0 or wav and nfft...')
+            G0 = G0.astype(self.dtype)
 
         fd_plus = np.concatenate((np.flip(G0, axis=-1).transpose(2, 0, 1),
-                                  np.zeros((self.nt - 1, self.nr, nvs))))
+                                  np.zeros((self.nt - 1, self.nr, nvs),
+                                           dtype=self.dtype)))
         fd_plus = da.from_array(fd_plus).rechunk(fd_plus.shape)
 
         # Run standard redatuming as benchmark
@@ -392,14 +401,15 @@ class Marchenko():
         # Create data and inverse focusing functions
         d = Wop * Rop * fd_plus.flatten()
         d = da.concatenate((d.reshape(self.nt2, self.ns, nvs),
-                            da.zeros((self.nt2, self.ns, nvs))))
+                            da.zeros((self.nt2, self.ns, nvs),
+                                     dtype=self.dtype)))
 
         # Invert for focusing functions
         f1_inv = cgls(Mop, d.flatten(), **kwargs_cgls)[0]
         f1_inv = f1_inv.reshape(2 * self.nt2, self.nr, nvs)
         f1_inv_tot = \
-            f1_inv + da.concatenate((np.zeros((self.nt2, self.nr, nvs)),
-                                     fd_plus))
+            f1_inv + da.concatenate((da.zeros((self.nt2, self.nr, nvs),
+                                              dtype=self.dtype), fd_plus))
         if greens:
             # Create Green's functions
             g_inv = Gop * f1_inv_tot.flatten()

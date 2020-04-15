@@ -79,7 +79,7 @@ class FFT(LinearOperator):
     """
     def __init__(self, dims, dir=0, nfft=None, sampling=1.,
                  real=False, fftshift=False, compute=(False, False),
-                 chunks=(None, None), todask=(None, None), dtype='complex128'):
+                 chunks=(None, None), todask=(None, None), dtype='float64'):
         if isinstance(dims, int):
             dims = (dims,)
         if dir > len(dims) - 1:
@@ -106,7 +106,12 @@ class FFT(LinearOperator):
         self.shape = (int(np.prod(dims) * (self.nfft // 2 + 1 if self.real
                                            else self.nfft) / self.dims[dir]),
                       int(np.prod(dims)))
+        # Find types to enforce to forward and adjoint outputs. This is
+        # required as np.fft.fft always returns complex128 even if input is
+        # float32 or less
         self.dtype = np.dtype(dtype)
+        self.cdtype = (np.ones(1, dtype=self.dtype) +
+                       1j*np.ones(1, dtype=self.dtype)).dtype
         self.compute = compute
         self.chunks = chunks
         self.todask = todask
@@ -138,6 +143,7 @@ class FFT(LinearOperator):
                 y = sqrt(1. / self.nfft) * da.fft.fft(x, n=self.nfft,
                                                       axis=self.dir)
             y = y.ravel()
+        y = y.astype(self.cdtype)
         return y
 
     def _rmatvec(self, x):
@@ -169,4 +175,5 @@ class FFT(LinearOperator):
             if self.fftshift:
                 y = da.fft.fftshift(y, axes=self.dir)
             y = y.ravel()
+        y = y.astype(self.dtype)
         return y

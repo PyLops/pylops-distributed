@@ -10,19 +10,19 @@ from pylops_distributed.signalprocessing import FFT as dFFT
 
 par1 = {'nt': 101, 'nx': 31, 'ny': 10,
         'nfft': None, 'real': False,
-        'ffthshift': False} # nfft=nt, complex input
+        'ffthshift': False, 'dtype':np.complex128} # nfft=nt, complex input
 par2 = {'nt': 101, 'nx': 31, 'ny': 10,
         'nfft': 256, 'real': False,
-        'ffthshift': False} # nfft>nt, complex input
+        'ffthshift': False, 'dtype':np.complex64} # nfft>nt, complex input
 par3 = {'nt': 101, 'nx': 31, 'ny': 10,
         'nfft': None, 'real': True,
-        'ffthshift': False}  # nfft=nt, real input
+        'ffthshift': False, 'dtype':np.float64}  # nfft=nt, real input
 par4 = {'nt': 101, 'nx': 31, 'ny': 10,
         'nfft': 256, 'real': True,
-        'ffthshift': False}  # nfft>nt, real input
+        'ffthshift': False, 'dtype':np.float32}  # nfft>nt, real input
 par5 = {'nt': 101, 'nx': 31, 'ny': 10,
         'nfft': 256, 'real': True,
-        'ffthshift': True}  # nfft>nt, real input and fftshift
+        'ffthshift': True, 'dtype':np.float32}  # nfft>nt, real input and fftshift
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4), (par5)])
 def test_FFT_1dsignal(par):
@@ -33,8 +33,9 @@ def test_FFT_1dsignal(par):
     x = da.from_array(np.sin(2 * np.pi * f0 * t))
     nfft = par['nt'] if par['nfft'] is None else par['nfft']
     dFFTop = dFFT(dims=[par['nt']], nfft=nfft, sampling=dt, real=par['real'],
-                  chunks = (par['nt'], nfft))
-    FFTop = FFT(dims=[par['nt']], nfft=nfft, sampling=dt, real=par['real'])
+                  chunks=(par['nt'], nfft), dtype=par['dtype'])
+    FFTop = FFT(dims=[par['nt']], nfft=nfft, sampling=dt, real=par['real'],
+                dtype=par['dtype'])
 
     # FFT with real=True cannot pass dot-test neither be inverted correctly,
     # see FFT documentation for a detailed explanation. We thus test FFT.H*FFT
@@ -71,8 +72,9 @@ def test_FFT_2dsignal(par):
     nfft = par['nt'] if par['nfft'] is None else par['nfft']
     dFFTop = dFFT(dims=(nt, nx), dir=0, nfft=nfft,
                   sampling=dt, real=par['real'],
-                  chunks=((nt, nx), (nfft, nx)))
-    FFTop = FFT(dims=(nt, nx), dir=0, nfft=nfft, sampling=dt)
+                  chunks=((nt, nx), (nfft, nx)), dtype=par['dtype'])
+    FFTop = FFT(dims=(nt, nx), dir=0, nfft=nfft, sampling=dt,
+                dtype=par['dtype'])
 
     # FFT with real=True cannot pass dot-test neither be inverted correctly,
     # see FFT documentation for a detailed explanation. We thus test FFT.H*FFT
@@ -96,8 +98,10 @@ def test_FFT_2dsignal(par):
     # 2nd dimension
     nfft = par['nx'] if par['nfft'] is None else par['nfft']
     dFFTop = dFFT(dims=(nt, nx), dir=1, nfft=nfft, sampling=dt,
-                  real=par['real'], chunks=((nt, nx), (nt, nfft)))
-    FFTop = FFT(dims=(nt, nx), dir=1, nfft=nfft, sampling=dt)
+                  real=par['real'], chunks=((nt, nx), (nt, nfft)),
+                  dtype=par['dtype'])
+    FFTop = FFT(dims=(nt, nx), dir=1, nfft=nfft, sampling=dt,
+                dtype=par['dtype'])
 
     # FFT with real=True cannot pass dot-test neither be inverted correctly,
     # see FFT documentation for a detailed explanation. We thus test FFT.H*FFT
@@ -134,9 +138,10 @@ def test_FFT_3dsignal(par):
     # 1st dimension
     nfft = par['nt'] if par['nfft'] is None else par['nfft']
     dFFTop = dFFT(dims=(nt, nx, ny), dir=0, nfft=nfft, sampling=dt,
-                  real=par['real'], chunks=((nt, nx, ny), (nfft, nx, ny)))
+                  real=par['real'], chunks=((nt, nx, ny), (nfft, nx, ny)),
+                  dtype=par['dtype'])
     FFTop = FFT(dims=(nt, nx, ny), dir=0, nfft=nfft, sampling=dt,
-                real=par['real'])
+                real=par['real'], dtype=par['dtype'])
 
     # FFT with real=True cannot pass dot-test neither be inverted correctly,
     # see FFT documentation for a detailed explanation. We thus test FFT.H*FFT
@@ -160,9 +165,10 @@ def test_FFT_3dsignal(par):
     # 2nd dimension
     nfft = par['nx'] if par['nfft'] is None else par['nfft']
     dFFTop = dFFT(dims=(nt, nx, ny), dir=1, nfft=nfft, sampling=dt,
-                  real=par['real'], chunks=((nt, nx, ny), (nt, nfft, ny)))
+                  real=par['real'], chunks=((nt, nx, ny), (nt, nfft, ny)),
+                  dtype=par['dtype'])
     FFTop = FFT(dims=(nt, nx, ny), dir=1, nfft=nfft, sampling=dt,
-                real=par['real'])
+                real=par['real'], dtype=par['dtype'])
 
     # FFT with real=True cannot pass dot-test neither be inverted correctly,
     # see FFT documentation for a detailed explanation. We thus test FFT.H*FFT
@@ -186,9 +192,10 @@ def test_FFT_3dsignal(par):
     # 3rd dimension
     nfft = par['ny'] if par['nfft'] is None else par['nfft']
     dFFTop = dFFT(dims=(nt, nx, ny), dir=2, nfft=nfft, sampling=dt,
-                  real=par['real'], chunks=((nt, nx, ny), (nt, ny, nfft)))
+                  real=par['real'], chunks=((nt, nx, ny), (nt, ny, nfft)),
+                  dtype=par['dtype'])
     FFTop = FFT(dims=(nt, nx, ny), dir=2, nfft=nfft, sampling=dt,
-                real=par['real'])
+                real=par['real'], dtype=par['dtype'])
 
     # FFT with real=True cannot pass dot-test neither be inverted correctly,
     # see FFT documentation for a detailed explanation. We thus test FFT.H*FFT
