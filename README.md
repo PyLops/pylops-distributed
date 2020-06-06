@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/pylops-distributed.svg)](https://badge.fury.io/py/pylops-distributed)
 [![Build Status](https://travis-ci.org/equinor/pylops-distributed.svg?branch=master)](https://travis-ci.org/equinor/pylops-distributed)
-[![AzureDevOps Status](https://dev.azure.com/MRAVA/PyLops/_apis/build/status/equinor.pylops-distributed?branchName=master)](https://dev.azure.com/MRAVA/PyLops/_build/latest?definitionId=3&branchName=master)
+[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/equinor.pylops-distributed?branchName=master)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=4&branchName=master)
 [![Documentation Status](https://readthedocs.org/projects/pylops-distributed/badge/?version=latest)](https://pylops-distributed.readthedocs.io/en/latest/?badge=latest)
 [![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/equinor/pylops)
 [![Slack Status](https://img.shields.io/badge/chat-slack-green.svg)](https://pylops.slack.com)

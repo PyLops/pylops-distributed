@@ -10,4 +10,5 @@ dependencies:
   - numba
   - icc_rt
   - dask>=2.0.0
+  - dask-jobqueue
   - pylops
