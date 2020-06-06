@@ -34,8 +34,6 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
     twosided : :obj:`bool`, optional
         MDC operator has both negative and positive time (``True``) or
         only positive (``False``)
-    dtype : :obj:`str`, optional
-        *Deprecated*, will be removed in v2.0.0
     saveGt : :obj:`bool`, optional
         Save ``G`` and ``G^H`` to speed up the computation of adjoint of
         :class:`pylops_distributed.signalprocessing.Fredholm1` (``True``) or create

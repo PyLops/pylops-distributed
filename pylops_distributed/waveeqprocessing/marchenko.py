@@ -79,7 +79,7 @@ class Marchenko():
 
     """
     def __init__(self, R, nt, dt=0.004, dr=1., wav=None, toff=0.0,
-                 nsmooth=10, saveRt=True, prescaled=False, dtype='float64'):
+                 nsmooth=10, saveRt=True, prescaled=False, dtype='float32'):
         # Save inputs into class
         self.nt = nt
         self.dt = dt
@@ -179,8 +179,8 @@ class Marchenko():
         Rollop = Roll(self.nt2 * self.ns,
                       dims=(self.nt2, self.ns),
                       dir=0, shift=-1, dtype=self.dtype)
-        Wop = Diagonal(da.from_array(w.T.flatten()))
-        Iop = Identity(self.nr * self.nt2)
+        Wop = Diagonal(da.from_array(w.T.flatten()), dtype=self.dtype)
+        Iop = Identity(self.nr * self.nt2, dtype=self.dtype)
         Mop = Block([[Iop, -1 * Wop * Rop],
                      [-1 * Wop * Rollop * R1op, Iop]]) * BlockDiag([Wop, Wop])
         Gop = Block([[Iop, -1 * Rop],
@@ -233,8 +233,7 @@ class Marchenko():
         f1_inv = cgls(Mop, d.flatten(), **kwargs_cgls)[0]
         f1_inv = f1_inv.reshape(2 * self.nt2, self.nr)
         f1_inv_tot = f1_inv + da.concatenate((da.zeros((self.nt2, self.nr),
-                                                       dtype=self.dtype),
-                                              fd_plus))
+                                                       dtype=self.dtype), fd_plus))
         # Create Green's functions
         if greens:
             g_inv = Gop * f1_inv_tot.flatten()
@@ -351,8 +350,9 @@ class Marchenko():
         Rollop = Roll(self.ns * nvs * self.nt2,
                       dims=(self.nt2, self.ns, nvs),
                       dir=0, shift=-1, dtype=self.dtype)
-        Wop = Diagonal(da.from_array(w.transpose(2, 0, 1).flatten()))
-        Iop = Identity(self.nr * nvs * self.nt2)
+        Wop = Diagonal(da.from_array(w.transpose(2, 0, 1).flatten()),
+                       dtype=self.dtype)
+        Iop = Identity(self.nr * nvs * self.nt2, dtype=self.dtype)
         Mop = Block([[Iop, -1 * Wop * Rop],
                      [-1 * Wop * Rollop * R1op, Iop]]) * BlockDiag([Wop, Wop])
         Gop = Block([[Iop, -1 * Rop],
