@@ -8,6 +8,7 @@ from pylops.utils.seismicevents import makeaxis, linear2d, linear3d
 from pylops.waveeqprocessing.mdd import MDC
 
 from pylops_distributed.waveeqprocessing.mdd import MDC as dMDC
+from pylops_distributed.waveeqprocessing.mdd import MDD
 from pylops_distributed.utils import dottest
 
 PAR = {'ox': 0, 'dx': 2, 'nx': 10,
@@ -144,9 +145,9 @@ def test_MDC_1virtualsource(par):
     # Define MDC linear operator
     Gwav_fft = np.fft.fft(Gwav, par['nt2'], axis=-1)
     Gwav_fft = Gwav_fft[..., :par['nfmax']]
+    dGwav_fft = da.from_array(Gwav_fft.transpose(2, 0, 1))
 
-    dMDCop = dMDC(da.from_array(Gwav_fft.transpose(2, 0, 1)),
-                  nt=par['nt2'], nv=1, dt=par['dt'], dr=par['dx'],
+    dMDCop = dMDC(dGwav_fft, nt=par['nt2'], nv=1, dt=par['dt'], dr=par['dx'],
                   twosided=par['twosided'])
     MDCop = MDC(Gwav_fft.transpose(2, 0, 1), nt=par['nt2'], nv=1,
                 dt=par['dt'], dr=par['dx'], twosided=par['twosided'],
@@ -154,10 +155,22 @@ def test_MDC_1virtualsource(par):
     dottest(dMDCop, par['nt2'] * par['ny'], par['nt2'] * par['nx'],
             chunks=((par['nt2'] * par['ny'], par['nt2'] * par['nx'])))
 
+    # Compare results with pylops implementation
     mwav = mwav.T
-    dy = (dMDCop * da.from_array(mwav.flatten())).compute()
+    dy = dMDCop * da.from_array(mwav.flatten())
     y = MDCop * mwav.flatten()
-    assert_array_almost_equal(dy, y, decimal=5)
+    assert_array_almost_equal(dy.compute(), y, decimal=5)
+
+    # Apply mdd function
+    dy = dy.reshape(par['nt2'], par['ny'])
+    print(dy)
+    minv = MDD(dGwav_fft,
+               dy[par['nt'] - 1:] if par['twosided'] else dy,
+               dt=par['dt'], dr=par['dx'], nfmax=par['nfmax'],
+               twosided=par['twosided'], adjoint=False, dottest=False,
+               **dict(niter=50))
+    print('minv', minv)
+    assert_array_almost_equal(mwav, minv.compute(), decimal=2)
 
 
 @pytest.mark.parametrize("par", [(par1), (par2), (par3), (par4),
@@ -204,8 +217,9 @@ def test_MDC_Nvirtualsources(par):
     # Define MDC linear operator
     Gwav_fft = np.fft.fft(Gwav, par['nt2'], axis=-1)
     Gwav_fft = Gwav_fft[..., :par['nfmax']]
+    dGwav_fft = da.from_array(Gwav_fft.transpose(2, 0, 1))
 
-    dMDCop = dMDC(da.from_array(Gwav_fft.transpose(2, 0, 1)), nt=par['nt2'],
+    dMDCop = dMDC(dGwav_fft, nt=par['nt2'],
                   nv=par['nx'], dt=par['dt'], dr=par['dx'],
                   twosided=par['twosided'])
     MDCop = MDC(Gwav_fft.transpose(2, 0, 1), nt=par['nt2'], nv=par['nx'],
@@ -217,7 +231,20 @@ def test_MDC_Nvirtualsources(par):
             chunks=((par['nt2'] * par['ny'] * par['nx'],
                      par['nt2'] * par['nx'] * par['nx'])))
 
+    # Compare results with pylops implementation
     mwav = mwav.T
-    dy = (dMDCop * da.from_array(mwav.flatten())).compute()
+    dy = (dMDCop * da.from_array(mwav.flatten()))
     y = MDCop * mwav.flatten()
-    assert_array_almost_equal(dy, y, decimal=5)
+    assert_array_almost_equal(dy.compute(), y, decimal=5)
+
+    # Apply mdd function
+    dy = dy.reshape(par['nt2'], par['ny'], par['nx'])
+
+    print(dy.shape)
+    minv = MDD(dGwav_fft,
+               dy[par['nt'] - 1:] if par['twosided'] else dy,
+               dt=par['dt'], dr=par['dx'], nfmax=par['nfmax'],
+               twosided=par['twosided'], adjoint=False,
+               dottest=False, **dict(niter=50))
+    print(mwav.shape, minv)
+    assert_array_almost_equal(mwav, minv.compute(), decimal=2)
