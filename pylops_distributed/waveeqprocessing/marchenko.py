@@ -79,7 +79,7 @@ class Marchenko():
 
     """
     def __init__(self, R, nt, dt=0.004, dr=1., wav=None, toff=0.0,
-                 nsmooth=10, saveRt=True, prescaled=False, dtype='float32'):
+                 nsmooth=10, saveRt=False, prescaled=False, dtype='float32'):
         # Save inputs into class
         self.nt = nt
         self.dt = dt
@@ -104,7 +104,6 @@ class Marchenko():
 
         # Save R
         self.Rtwosided_fft = R
-
 
     def apply_onepoint(self, trav, dist=None, G0=None, nfft=None,
                        rtm=False, greens=False, dottest=False,
