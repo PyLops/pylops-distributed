@@ -209,7 +209,7 @@ class LinearOperator(pLinearOperator):
                                               self.todask[0]),
                                      dtype=self.dtype)
 
-    def div1(self, y, niter=100):
+    def div(self, y, niter=100):
         r"""Solve the linear problem :math:`\mathbf{y}=\mathbf{A}\mathbf{x}`.
 
         Overloading of operator ``/`` to improve expressivity of

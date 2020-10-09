@@ -61,6 +61,7 @@ Wave-Equation processing
    :toctree: generated/
 
    MDC
+   MDD
    Marchenko
    Demigration
 

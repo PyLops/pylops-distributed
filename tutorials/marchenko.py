@@ -10,8 +10,14 @@ the high-performance format `Zarr <https://zarr.readthedocs.io/en/latest/>`_.
 This allows lazy loading using a `Dask <https://dask.org>`_
 array and distributing over frequencies the computation of the various
 Fredholm integrals involved in the forward model.
+
+**NOTE:** do not expect this code to run any fast than its `pylops equivalent
+<https://pylops.readthedocs.io/en/latest/tutorials/marchenko.html#sphx-glr-tutorials-marchenko-py>`_.
+for small datasets. The pylops-distributed framework should only be used when
+dealing with large datasets that do not fit in memory and benefit from
+distributed computing.
+
 """
-# sphinx_gallery_thumbnail_number = 3
 import warnings
 import numpy as np
 import dask.array as da
@@ -22,6 +28,8 @@ from pylops_distributed.waveeqprocessing import Marchenko
 
 warnings.filterwarnings('ignore')
 plt.close('all')
+
+# sphinx_gallery_thumbnail_number = 4
 
 ###############################################################################
 # Let's start by defining some input parameters and loading the test data
