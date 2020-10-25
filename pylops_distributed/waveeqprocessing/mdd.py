@@ -1,8 +1,10 @@
 import logging
 import numpy as np
 import dask.array as da
+from math import sqrt
 from pylops.waveeqprocessing.mdd import _MDC
 
+from pylops_distributed import LinearOperator
 from pylops_distributed.utils import dottest as Dottest
 from pylops_distributed import Identity, Transpose
 from pylops_distributed.signalprocessing import FFT, Fredholm1
@@ -11,9 +13,7 @@ from pylops_distributed.optimization.cg import cgls
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
 
 
-def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
-        saveGt=False, conj=False, prescaled=False,
-        compute=(False, False), todask=(False, False)):
+class MDC(LinearOperator):
     r"""Multi-dimensional convolution.
 
     Apply multi-dimensional convolution between two datasets.
@@ -56,6 +56,9 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
     todask : :obj:`tuple`, optional
         Apply :func:`dask.array.from_array` to model and data before applying
         forward and adjoint respectively
+    dtype : :obj:`str`, optional
+        Type of elements in input array. If ``None``, automatically inferred
+        from ``G``
 
     Notes
     -----
@@ -63,21 +66,110 @@ def MDC(G, nt, nv, dt=1., dr=1., twosided=True,
     details.
 
     """
-    return _MDC(G, nt, nv, dt=dt, dr=dr, twosided=twosided,
-                transpose=False, saveGt=saveGt, conj=conj, prescaled=prescaled,
-                _Identity=Identity, _Transpose=Transpose,
-                _FFT=FFT, _Fredholm1=Fredholm1,
-                args_Fredholm1={'chunks': ((G.chunks[0], G.shape[2], nv),
-                                           (G.chunks[0], G.shape[1], nv))},
-                args_FFT={'chunks': ((nt, G.shape[2], nv),
-                                     (nt, G.shape[2], nv)),
-                          'todask':(todask[0], False),
-                          'compute': (False, compute[1])},
-                args_FFT1={'chunks': ((nt, G.shape[1], nv),
-                                      (nt, G.shape[1], nv)),
-                           'todask': (todask[1], False),
-                           'compute':(False, compute[0])})
+    def __init__(self, G, nt, nv, dt=1., dr=1., twosided=True,
+                 saveGt=False, conj=False, prescaled=False,
+                 chunks=(None, None), compute=(False, False),
+                 todask=(False, False), dtype=None):
 
+        if twosided and nt % 2 == 0:
+            raise ValueError('nt must be odd number')
+
+        # store G
+        self.G = G
+        self.nfmax, self.ns, self.nr = self.G.shape
+        self.saveGt = saveGt
+        if self.saveGt:
+            self.GT = (G.transpose((0, 2, 1)).conj()).persist()
+
+        # ensure that nfmax is not bigger than allowed
+        self.nfft = int(np.ceil((nt + 1) / 2))
+        if self.nfmax > self.nfft:
+            self.nfmax = self.nfft
+            logging.warning('nfmax set equal to ceil[(nt+1)/2=%d]' % self.nfmax)
+
+        # store other input parameters
+        self.nt, self.nv = nt, nv
+        self.dt, self.dr = dt, dr
+        self.twosided = twosided
+        self.conj = conj
+        self.prescaled = prescaled
+        self.dims = (self.nt, self.nr, self.nv)
+        self.dimsd = (self.nt, self.ns, self.nv)
+        self.dimsdf = (self.nfft, self.ns, self.nv)
+
+        # find out dtype of G
+        self.cdtype = self.G[0, 0, 0].dtype
+        if dtype is None:
+            self.dtype = np.real(np.ones(1, dtype=self.cdtype)).dtype
+        else:
+            self.dtype = dtype
+
+        self.shape = (np.prod(self.dimsd), np.prod(self.dims))
+        self.compute = compute
+        self.chunks = chunks
+        self.todask = todask
+        self.Op = None
+        self.explicit = False
+
+    def _matvec(self, x):
+        # apply forward fft
+        x = da.reshape(x, self.dims)
+        if self.twosided:
+            x = da.fft.ifftshift(x, axes=0)
+        y = sqrt(1. / self.nt) * da.fft.rfft(x, n=self.nt, axis=0)
+        y = y.astype(self.cdtype)
+        y = y[:self.nfmax]
+
+        # apply batched matrix mult
+        y = y.rechunk((self.G.chunks[0], self.nr, self.nv))
+        if self.conj:
+            y = y.conj()
+        y = da.matmul(self.G, y)
+        if self.conj:
+            y = y.conj()
+        if not self.prescaled:
+            y *= self.dr * self.dt * np.sqrt(self.nt)
+
+        # apply inverse fft
+        y = da.pad(y, ((0, self.nfft - self.nfmax), (0, 0), (0, 0)), mode='constant')
+        y = y.rechunk(self.dimsdf)
+        y = sqrt(self.nt) * da.fft.irfft(y, n=self.nt, axis=0)
+        y = y.astype(self.dtype)
+        y = da.real(y)
+        return y.ravel()
+
+    def _rmatvec(self, x):
+        # apply forward fft
+        x = da.reshape(x, self.dimsd)
+        y = sqrt(1. / self.nt) * da.fft.rfft(x, n=self.nt, axis=0)
+        y = y.astype(self.cdtype)
+        y = y[:self.nfmax]
+
+        # apply batched matrix mult
+        y = y.rechunk((self.G.chunks[0], self.nr, self.nv))
+        if self.saveGt:
+            if self.conj:
+                y = y.conj()
+            y = da.matmul(self.GT, y)
+            if self.conj:
+                y = y.conj()
+        else:
+            if self.conj:
+                y = da.matmul(y.transpose(0, 2, 1), self.G).transpose(0, 2, 1)
+            else:
+                y = da.matmul(y.transpose(0, 2, 1).conj(), self.G).transpose(0, 2, 1).conj()
+        if not self.prescaled:
+            y *= self.dr * self.dt * np.sqrt(self.nt)
+
+        # apply inverse fft
+        y = da.pad(y, ((0, self.nfft - self.nfmax), (0, 0), (0, 0)), mode='constant')
+        y = y.rechunk(self.dimsdf)
+        y = sqrt(self.nt) * da.fft.irfft(y, n=self.nt, axis=0)
+        if self.twosided:
+            y = da.fft.fftshift(y, axes=0)
+        y = y.astype(self.dtype)
+        y = da.real(y)
+        return y.ravel()
 
 
 def MDD(G, d, dt=0.004, dr=1., nfmax=None, wav=None,
@@ -178,6 +270,7 @@ def MDD(G, d, dt=0.004, dr=1., nfmax=None, wav=None,
             d = da.concatenate((da.zeros((nt - 1, ns)), d), axis=0)
         else:
             d = da.concatenate((da.zeros((nt - 1, ns, nv)), d), axis=0)
+        d = d.rechunk(d.shape)
 
     # Define MDC linear operator
     MDCop = MDC(G, nt2, nv=nv, dt=dt, dr=dr,
