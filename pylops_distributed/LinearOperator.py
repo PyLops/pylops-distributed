@@ -76,7 +76,7 @@ class LinearOperator(pLinearOperator):
             An array with shape ``(N, )`` or ``(N, 1)``
 
         """
-        if self.todask[0]:
+        if self.todask[0] and not isinstance(x, da.core.Array):
             x = da.asarray(x)
         if self.Op is None:
             y = self._matvec(x)
@@ -105,7 +105,7 @@ class LinearOperator(pLinearOperator):
             An array with shape ``(M, )`` or ``(M, 1)``
 
         """
-        if self.todask[1]:
+        if self.todask[1] and not isinstance(x, da.core.Array):
             x = da.asarray(x)
         if self.Op is None:
             y = self._rmatvec(x)
