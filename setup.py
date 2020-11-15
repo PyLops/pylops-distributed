@@ -29,7 +29,7 @@ setup(
         'Topic :: Scientific/Engineering :: Mathematics'
     ],
     author='mrava',
-    author_email='mrava@equinor.com',
+    author_email='matteoravasi@gmail.com',
     install_requires=['numpy >= 1.15.0', 'scipy', 'llvmlite', 'numba',
                       'dask[complete] >= 2.0.0', 'pylops'],
     packages=find_packages(exclude=("pytests",)),
