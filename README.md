@@ -1,10 +1,10 @@
-![PyLops-distributed](https://github.com/equinor/pylops-distributed/blob/master/docs/source/_static/distr-pylops_b.png)
+![PyLops-distributed](https://github.com/PyLops/pylops-distributed/blob/master/docs/source/_static/distr-pylops_b.png)
 
 [![PyPI version](https://badge.fury.io/py/pylops-distributed.svg)](https://badge.fury.io/py/pylops-distributed)
-[![Build Status](https://travis-ci.org/equinor/pylops-distributed.svg?branch=master)](https://travis-ci.org/equinor/pylops-distributed)
-[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/equinor.pylops-distributed?branchName=master)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=4&branchName=master)
+[![Build Status](https://travis-ci.org/PyLops/pylops-distributed.svg?branch=master)](https://travis-ci.org/PyLops/pylops-distributed)
+[![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pylops-distributed?branchName=master)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=4&branchName=master)
 [![Documentation Status](https://readthedocs.org/projects/pylops-distributed/badge/?version=latest)](https://pylops-distributed.readthedocs.io/en/latest/?badge=latest)
-[![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/equinor/pylops)
+[![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/PyLops/pylops)
 [![Slack Status](https://img.shields.io/badge/chat-slack-green.svg)](https://pylops.slack.com)
 
 
@@ -95,7 +95,7 @@ Coming soon...
 You can also directly install from the master node
 
 ```
-pip install https://git@github.com/equinor/pylops-distributed.git@master
+pip install https://git@github.com/PyLops/pylops-distributed.git@master
 ```
 
 ## Contributing
