@@ -1,7 +1,7 @@
 ![PyLops-distributed](https://github.com/PyLops/pylops-distributed/blob/master/docs/source/_static/distr-pylops_b.png)
 
 [![PyPI version](https://badge.fury.io/py/pylops-distributed.svg)](https://badge.fury.io/py/pylops-distributed)
-[![Build Status](https://travis-ci.org/PyLops/pylops-distributed.svg?branch=master)](https://travis-ci.org/PyLops/pylops-distributed)
+[![Build Status](https://travis-ci.com/PyLops/pylops-distributed.svg?branch=master)](https://travis-ci.com/PyLops/pylops-distributed)
 [![AzureDevOps Status](https://dev.azure.com/matteoravasi/PyLops/_apis/build/status/PyLops.pylops-distributed?branchName=master)](https://dev.azure.com/matteoravasi/PyLops/_build/latest?definitionId=4&branchName=master)
 [![Documentation Status](https://readthedocs.org/projects/pylops-distributed/badge/?version=latest)](https://pylops-distributed.readthedocs.io/en/latest/?badge=latest)
 [![OS-support](https://img.shields.io/badge/OS-linux,osx-850A8B.svg)](https://github.com/PyLops/pylops)
